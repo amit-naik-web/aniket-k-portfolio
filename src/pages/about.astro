@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About Us - Astro" description="Learn more about our team and mission">
+	<!-- Hero Section -->
+	<section class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-20">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+			<h1 class="text-4xl md:text-5xl font-bold mb-6">About Our Team</h1>
+			<p class="text-xl text-indigo-100 max-w-3xl mx-auto">
+				We're passionate about building fast, modern websites that deliver exceptional user experiences.
+			</p>
+		</div>
+	</section>
+
+	<!-- Mission Section -->
+	<section class="py-20 bg-white">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+				<div>
+					<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Our Mission</h2>
+					<p class="text-lg text-gray-600 mb-6">
+						We believe that the web should be fast, accessible, and beautiful. Our mission is to help developers and businesses create exceptional digital experiences using modern web technologies.
+					</p>
+					<p class="text-lg text-gray-600 mb-8">
+						With Astro and Tailwind CSS, we're building the future of web development - one that prioritizes performance, developer experience, and user satisfaction.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4">
+						<a href="/contact" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+							Get in Touch
+						</a>
+						<a href="/services" class="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200">
+							Our Services
+						</a>
+					</div>
+				</div>
+				<div class="bg-gray-50 p-8 rounded-xl">
+					<div class="grid grid-cols-2 gap-6">
+						<div class="text-center">
+							<div class="text-3xl font-bold text-indigo-600 mb-2">5+</div>
+							<div class="text-gray-600">Years Experience</div>
+						</div>
+						<div class="text-center">
+							<div class="text-3xl font-bold text-purple-600 mb-2">100+</div>
+							<div class="text-gray-600">Projects Completed</div>
+						</div>
+						<div class="text-center">
+							<div class="text-3xl font-bold text-green-600 mb-2">50+</div>
+							<div class="text-gray-600">Happy Clients</div>
+						</div>
+						<div class="text-center">
+							<div class="text-3xl font-bold text-blue-600 mb-2">24/7</div>
+							<div class="text-gray-600">Support</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Team Section -->
+	<section class="py-20 bg-gray-50">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-16">
+				<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Meet Our Team</h2>
+				<p class="text-xl text-gray-600 max-w-3xl mx-auto">
+					Our talented team of developers, designers, and strategists work together to create amazing digital experiences.
+				</p>
+			</div>
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+				<!-- Team Member 1 -->
+				<div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300">
+					<div class="w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+						<span class="text-2xl font-bold text-white">JD</span>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 text-center mb-2">John Doe</h3>
+					<p class="text-indigo-600 text-center mb-4">Lead Developer</p>
+					<p class="text-gray-600 text-center">
+						Full-stack developer with expertise in modern web technologies and performance optimization.
+					</p>
+				</div>
+
+				<!-- Team Member 2 -->
+				<div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300">
+					<div class="w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+						<span class="text-2xl font-bold text-white">JS</span>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 text-center mb-2">Jane Smith</h3>
+					<p class="text-purple-600 text-center mb-4">UI/UX Designer</p>
+					<p class="text-gray-600 text-center">
+						Creative designer focused on creating beautiful, intuitive user experiences.
+					</p>
+				</div>
+
+				<!-- Team Member 3 -->
+				<div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300">
+					<div class="w-24 h-24 bg-gradient-to-br from-green-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+						<span class="text-2xl font-bold text-white">MJ</span>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 text-center mb-2">Mike Johnson</h3>
+					<p class="text-green-600 text-center mb-4">DevOps Engineer</p>
+					<p class="text-gray-600 text-center">
+						Infrastructure specialist ensuring reliable deployment and optimal performance.
+					</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Values Section -->
+	<section class="py-20 bg-white">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-16">
+				<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Values</h2>
+				<p class="text-xl text-gray-600 max-w-3xl mx-auto">
+					The principles that guide everything we do and every decision we make.
+				</p>
+			</div>
+			
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+				<div class="text-center">
+					<div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+						</svg>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 mb-4">Performance</h3>
+					<p class="text-gray-600">We prioritize speed and efficiency in everything we build.</p>
+				</div>
+
+				<div class="text-center">
+					<div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+						</svg>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 mb-4">Innovation</h3>
+					<p class="text-gray-600">We embrace new technologies and creative solutions.</p>
+				</div>
+
+				<div class="text-center">
+					<div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+						</svg>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 mb-4">Collaboration</h3>
+					<p class="text-gray-600">We work together to achieve the best possible results.</p>
+				</div>
+
+				<div class="text-center">
+					<div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+					</div>
+					<h3 class="text-xl font-semibold text-gray-900 mb-4">Quality</h3>
+					<p class="text-gray-600">We never compromise on the quality of our work.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+</Layout> 

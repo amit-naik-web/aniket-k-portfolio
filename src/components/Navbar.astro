@@ -1,0 +1,94 @@
+---
+// Navbar component with mobile responsiveness
+---
+
+<!-- <nav class="sticky top-0 z-50 w-[95%] h-[5rem] bg-white flex flex-direction-row">
+    <div class="h-full w-1/5 bg-[#fff]">Logo</div>
+    <div class="h-full flex-1 bg-[#d5d5d5]">NavBar</div>
+</nav> -->
+<nav class="fixed w-[100%] h-[7rem] z-20 top-0 start-0 flex flex-direction-row">
+  <div class="flex flex-direction-col">
+    <div class="h-full w-full flex flex-direction-col items-end bg-white">
+      <div class="flex flex-direction-row">
+        <div class="h-full w-1/5 bg-[#fff]">Logo</div>
+        <div class="w-[50px] h-[50px] rotate-180">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#dbeaff"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="h-full w-full flex items-start">
+        <div class="w-[50px] h-[50px] rotate-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-full flex items-start">
+      <div class="w-[50px] h-[50px] rotate-0">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="h-full flex-1 bg-[#d5d5d5]">NavBar</div>
+</nav>
+
+<!-- <script>
+  // Mobile menu toggle functionality
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  if (mobileMenuButton && mobileMenu) {
+    mobileMenuButton.addEventListener('click', () => {
+      const isHidden = mobileMenu.classList.contains('hidden');
+      
+      if (isHidden) {
+        mobileMenu.classList.remove('hidden');
+        mobileMenu.classList.add('animate-fadeIn');
+      } else {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('animate-fadeIn');
+      }
+    });
+
+    // Close mobile menu when clicking on a link
+    const mobileLinks = mobileMenu.querySelectorAll('a');
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('animate-fadeIn');
+      });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (event) => {
+      const target = event.target as Node;
+      if (!mobileMenuButton.contains(target) && !mobileMenu.contains(target)) {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('animate-fadeIn');
+      }
+    });
+  }
+</script> -->
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease-out;
+  }
+</style>

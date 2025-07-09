@@ -1,0 +1,58 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+import Navbar from "../components/Navbar.astro";
+---
+
+<Layout title="01byte10">
+  <!-- Hero Section -->
+  <section
+    class="flex justify-center items-center bg=[#000] w-full h-screen pb-3"
+  >
+    <div
+      class="flex justify-center items-center relative w-full h-full rounded-[50px] rounded-tr-[0] rounded-tl-[0] bg-blue-100"
+    >
+      <!-- <div class="absolute top-0 left-0 flex-direction-col">
+        <div class="flex flex-direction-row">
+          <h3 class="w-[20rem] h-[8rem] bg-[#fff] rounded-br-[50px] m-0">
+            Logo
+          </h3>
+          <div class="w-[50px] h-[50px] rotate-0">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="w-[50px] h-[50px] rotate-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
+          </svg>
+        </div>
+      </div> -->
+      <div class="absolute bottom-0 left-0">
+        <div class="w-[50px] h-[50px] -rotate-90">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
+          </svg>
+        </div>
+        <div class="flex flex-direction-col">
+          <div class="flex flex-direction-row items-end">
+            <div
+              class="p-4 text-right w-[38rem] h-[20rem] bg-[#fff] rounded-tr-[50px]"
+            >
+              <h1 class="text-7xl font-bold text-gray-800">Catch Phrase</h1>
+              <h2 class="text-4xl text-gray-600">Loreum Ipsum</h2>
+            </div>
+
+            <div class="w-[50px] h-[50px] -rotate-90">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
