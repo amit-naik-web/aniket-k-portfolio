@@ -24,16 +24,15 @@ const { title, description = "Welcome to our Astro website" } = Astro.props;
 			rel="stylesheet"
 		/>
 	</head>
-	<body class="font-['Inter'] w-full flex justify-center items-center">
-
+	<body class="font-['Inter'] w-full flex justify-center items-center flex-col">
 		<main class="w-[95%] flex justify-center items-center">
 			<Navbar />
 			<slot />
 		</main>
 
-		<!-- <footer>
+		<footer>
 			<div class="bg-[#ddd] w-full h-16 flex justify-center items-center">footer</div>
-		</footer> -->
+		</footer>
 	</body>
 </html>
 

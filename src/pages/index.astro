@@ -6,11 +6,9 @@ import Navbar from "../components/Navbar.astro";
 
 <Layout title="01byte10">
   <!-- Hero Section -->
-  <section
-    class="flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3"
-  >
+  <section class="flex justify-center items-center w-full pb-3 flex-col">
     <div
-      class="flex justify-center items-center relative w-full h-full rounded-[50px] rounded-tr-[0] rounded-tl-[0] bg-blue-100"
+      class="flex justify-center items-center relative w-full min-h-full h-screen rounded-[50px] rounded-tr-[50px] bg-red-100"
     >
       <!-- <div class="absolute top-0 left-0 flex-direction-col">
         <div class="flex flex-direction-row">
@@ -53,6 +51,45 @@ import Navbar from "../components/Navbar.astro";
           </div>
         </div>
       </div>
+      <!-- <div class="video-container"> -->
+      <div class="relative w-full aspect-video overflow-hidden">
+        <video
+          width="5000px"
+          height="5000px"
+          class="absolute top-0 left-0 w-full h-full object-cover"
+          poster="/fallback.jpg"
+          autoplay
+          muted
+          loop
+          playsinline
+        >
+          <!-- <source src="/videos/sample.mp4" type="video/mp4" /> -->
+          <!-- <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4" /> -->
+          <source
+            src="https://www.w3schools.com/html/mov_bbb.mp4"
+            type="video/mp4"
+          />
+
+          Your browser does not support the video tag.
+        </video>
+
+        <!-- Overlay -->
+      <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-center px-4">
+        <h1 class="text-3xl font-bold">Welcome to Our Demo</h1>
+      </div>
+      </div>
+    </div>
+
+    <!-- features section -->
+    <div
+      class="flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3"
+    >
+    </div>
+
+    <!-- experience section -->
+    <div
+      class="flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3"
+    >
     </div>
   </section>
 </Layout>
