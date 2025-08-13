@@ -1,0 +1,99 @@
+---
+const items = [
+    {
+        name: "SUNBURN 2024",
+        preview: "/Fisher.jpg",
+    },
+    {
+        name: "ALAN WALKER",
+        preview: "https://www.w3schools.com/html/mov_bbb.mp4",
+    },
+    {
+        name: "MARSHMELLO",
+        preview: "/Fisher.jpg",
+    },
+    {
+        name: "BRYAN ADAMS",
+        preview: "https://www.w3schools.com/html/mov_bbb.mp4",
+    },
+    {
+        name: "KLANGKUENSTLER",
+        preview: "/klang-preview-3.jpg",
+    },
+    {
+        name: "FISHER",
+        preview: "/fisher-preview-1.jpg",
+    },
+];
+---
+
+<div
+    class="relative flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3 overflow-hidden"
+>
+    <!-- Background Preview -->
+    <div
+        id="preview-bg"
+        class="absolute inset-0 transition-all duration-500 ease-in-out"
+        style={`background: url(${items[0].preview}) center/cover no-repeat`}
+    >
+    </div>
+
+    <!-- Overlay to darken -->
+    <div class="absolute inset-0 bg-black/60"></div>
+
+    <!-- Main List -->
+    <div class="flex flex-col justify-center items-center w-full h-full">
+        <div class="z-20 flex flex-row w-full h-[30%] border-gray-600">
+            <div class="w-[25%] h-full"></div>
+            <div class="w-[75%] h-full flex justify-start items-end">
+                <h1 class="text-7xl font-bold text-gray-100">Highlights.</h1>
+            </div>
+        </div>
+
+        <!-- List Content -->
+        <div
+            class="z-10 flex-1 w-full flex flex-col justify-center items-center pt-10"
+        >
+            <div
+                class="flex-1 w-[50%] flex flex-col justify-start items-center"
+                set:html={`
+                     ${items
+                        .map(
+                    (item, idx) =>
+                    `<div class="h-[2.5rem] w-full border-t-1 border-gray-400" data-preview="${item.preview}">
+                        <h2 class="text-gray-400 hover:text-white cursor-pointer inline-block w-full text-2xl font-bold hover:font-black text-gray-100 py-2 origin-left transition-transform duration-200 scale-x-125 hover:scale-x-150">
+                          ${item.name}
+                        </h2>
+                    </div>`,
+                    )
+                    .join("")}
+                        `}
+            />
+        </div>
+    </div>
+</div>
+
+<script>
+    const bgDiv = document.getElementById("preview-bg");
+    if (!bgDiv) {
+        console.warn('Element with id "preview-bg" not found.');
+    } else {
+        document.querySelectorAll("[data-preview]").forEach((el) => {
+            el.addEventListener("mouseenter", () => {
+                const previewUrl = el.getAttribute("data-preview");
+                if (previewUrl?.endsWith(".mp4")) {
+                    // Replace bg with a video
+                    bgDiv.innerHTML = `
+            <video autoplay muted loop class="w-full h-full object-cover">
+              <source src="${previewUrl}" type="video/mp4" />
+            </video>
+          `;
+                } else {
+                    // Use image background
+                    bgDiv.innerHTML = "";
+                    bgDiv.style.background = `url(${previewUrl}) center/cover no-repeat`;
+                }
+            });
+        });
+    }
+</script>

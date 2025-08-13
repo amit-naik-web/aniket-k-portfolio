@@ -20,6 +20,7 @@ export default {
         },
       },
       fontFamily: {
+        artistic: ['"Pacifico"', 'cursive'],
         sans: ['var(--font-family-sans)'],
         mono: ['var(--font-family-mono)'],
         serif: ['var(--font-family-serif)'],

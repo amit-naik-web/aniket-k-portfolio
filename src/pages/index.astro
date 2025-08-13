@@ -1,95 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import "../styles/global.css";
-import Navbar from "../components/Navbar.astro";
+import HeroSection from "../components/heroSection.astro";
+import LatestWorkShowCase from "../components/latestWorkShowCase.astro";
+import PreviewListShowCase from "../components/previewListShowCase.astro";
 ---
 
 <Layout title="01byte10">
   <!-- Hero Section -->
-  <section class="flex justify-center items-center w-full pb-3 flex-col">
-    <div
-      class="flex justify-center items-center relative w-full min-h-full h-screen rounded-[50px] rounded-tr-[50px] bg-red-100"
-    >
-      <!-- <div class="absolute top-0 left-0 flex-direction-col">
-        <div class="flex flex-direction-row">
-          <h3 class="w-[20rem] h-[8rem] bg-[#fff] rounded-br-[50px] m-0">
-            Logo
-          </h3>
-          <div class="w-[50px] h-[50px] rotate-0"
-            <svg viewBox="0 0 100 100" class="w-full h-full">
-              <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="w-[50px] h-[50px] rotate-0">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
-          </svg>
-        </div>
-      </div> -->
-      <div class="absolute bottom-0 left-0">
-        <div class="w-[50px] h-[50px] -rotate-90">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"></path>
-          </svg>
-        </div>
-        <div class="flex flex-direction-col">
-          <div class="flex flex-direction-row items-end">
-            <div
-              class="p-4 text-right w-[38rem] h-[20rem] bg-[#fff] rounded-tr-[50px]"
-            >
-              <h1 class="text-7xl font-bold text-gray-800">Catch Phrase</h1>
-              <h2 class="text-4xl text-gray-600">Loreum Ipsum</h2>
-            </div>
+  <HeroSection />
 
-            <div class="w-[50px] h-[50px] -rotate-90">
-              <svg viewBox="0 0 100 100" class="w-full h-full">
-                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#fff"
-                ></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- <div class="video-container"> -->
-      <div class="relative w-full aspect-video overflow-hidden">
-        <video
-          width="5000px"
-          height="5000px"
-          class="absolute top-0 left-0 w-full h-full object-cover"
-          poster="/fallback.jpg"
-          autoplay
-          muted
-          loop
-          playsinline
-        >
-          <!-- <source src="/videos/sample.mp4" type="video/mp4" /> -->
-          <!-- <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4" /> -->
-          <source
-            src="https://www.w3schools.com/html/mov_bbb.mp4"
-            type="video/mp4"
-          />
+  <!-- Latest Work/Feature Section -->
+  <LatestWorkShowCase />
 
-          Your browser does not support the video tag.
-        </video>
-
-        <!-- Overlay -->
-      <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-center px-4">
-        <h1 class="text-3xl font-bold">Welcome to Our Demo</h1>
-      </div>
-      </div>
-    </div>
-
-    <!-- features section -->
-    <div
-      class="flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3"
-    >
-    </div>
-
-    <!-- experience section -->
-    <div
-      class="flex justify-center items-center bg=[#000] w-full min-h-full h-screen pb-3"
-    >
-    </div>
-  </section>
+  <!-- Preview List Section -->
+  <PreviewListShowCase />
 </Layout>

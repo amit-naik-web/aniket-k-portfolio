@@ -1,0 +1,109 @@
+---
+// Hero Section component
+---
+
+<section class="flex justify-center items-center w-full pb-3 flex-col">
+    <div
+        class="flex justify-center items-center relative w-full min-h-full h-screen rounded-[50px] rounded-tr-[50px]"
+    >
+        <div class="absolute bottom-0 left-0 z-10 w-full">
+            <div class="w-[50px] h-[50px] -rotate-90">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#000"
+                    ></path>
+                </svg>
+            </div>
+            <div class="flex w-full">
+                <div class="flex flex-row items-end">
+                    <div
+                        class="p-4 text-right w-[38rem] h-[12rem] bg-[#000] rounded-tr-[50px]"
+                    >
+                        <h1 class="text-7xl font-extrabold text-gray-800">
+                            Catch Phrase
+                        </h1>
+                        <h2 class="text-4xl font-bold text-gray-600">
+                            Loreum Ipsum
+                        </h2>
+                    </div>
+
+                    <div class="w-[50px] h-[50px] -rotate-90">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <path
+                                d="m100,0H0v100C0,44.77,44.77,0,100,0Z"
+                                fill="#000"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full h-3 bg-black"></div>
+        </div>
+        <!-- <div class="video-container"> -->
+        <div
+            class="relative w-full h-full aspect-video overflow-hidden bg-white"
+        >
+            <div
+                class="z-10 w-[50px] h-[50px] rotate-90 absolute top-3 right-0"
+            >
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#000"
+                    ></path>
+                </svg>
+            </div>
+            <div
+                class="z-10 w-[50px] h-[50px] rotate-180 absolute bottom-3 right-0"
+            >
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#000"
+                    ></path>
+                </svg>
+            </div>
+            <video
+                width="100%"
+                height="100%"
+                class="absolute top-0 left-0 w-full h-full object-cover"
+                poster="/main-banner-image.jpg"
+                autoplay
+                muted
+                loop
+                playsinline
+            >
+                <source
+                    src="https://www.w3schools.com/html/mov_bbb.mp4"
+                    type="video/mp4"
+                />
+
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div
+            class="z-10 min-w-[10%] border-l-2 border-black h-full bg-transparent flex flex-col space-between pt-3 pb-3 px-3 gap-3"
+        >
+            <!-- rounded-tl-[25px] rounded-tr-[50px] -->
+            <div
+                class="flex rounded-[50px] justify-center items-center h-[60%] w-full flex bg-purple-400"
+            >
+                <div
+                    class="w-full h-full overflow-hidden"
+                >
+                    kkkltrggggggggggggggggggggfeeeeeeeeeekjjj
+                </div>
+            </div>
+            <div
+                class="flex rounded-[50px] justify-center items-center h-[40%] w-full flex bg-pink-700"
+            >
+                <div
+                    class="w-full h-full rounded-[50px] overflow-hidden"
+                >
+                    kkkltrggggggggggggggggggggfeeeeeeeeeekjjj
+                </div>
+            </div>
+        </div>
+        <!-- Overlay -->
+        <div
+            class="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-center px-4"
+        >
+            <h1 class="text-3xl font-bold">Welcome to Our Demo</h1>
+        </div>
+    </div>
+</section>
