@@ -1,0 +1,1492 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Canvas Gallery - Aniket K Portfolio">
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor" id="customCursor"></div>
+
+  <!-- Canvas Container -->
+  <div class="canvas-container">
+    <canvas id="galleryCanvas"></canvas>
+    <div class="overlay" id="overlay"></div>
+  </div>
+
+  <!-- Project Title Overlay -->
+  <div class="project-title">
+    <p></p>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" id="loadingIndicator">
+    <div class="loading-spinner"></div>
+    <p>Loading Gallery...</p>
+  </div>
+
+  <!-- Page Vignette Effects -->
+  <div class="page-vignette-container">
+    <div class="page-vignette"></div>
+    <div class="page-vignette-strong"></div>
+    <div class="page-vignette-extreme"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="coordinates-section">
+      <p>33.9249° S, 18.4241° E</p>
+    </div>
+    <div class="links-section">
+      <p>Canvas Gallery <span class="key-hint">Drag to Explore</span></p>
+    </div>
+    <div class="info-section">
+      <p>Est. 2025 • Vorteks Digital</p>
+    </div>
+  </div>
+
+  <!-- Scroll Hint (fades out after interaction) -->
+  <div class="scroll-hint" id="scrollHint">
+    <div class="scroll-hint-icon">
+      <svg width="20" height="32" viewBox="0 0 20 32" fill="none">
+        <path d="M10 8V16" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <rect x="1" y="1" width="18" height="30" rx="9" stroke="white" stroke-width="2"/>
+      </svg>
+    </div>
+    <p>Drag in any direction</p>
+  </div>
+</Layout>
+
+<style>
+  @import url("https://fonts.cdnfonts.com/css/thegoodmonolith");
+
+  @font-face {
+    src: url("https://fonts.cdnfonts.com/css/pp-neue-montreal") format("woff2");
+    font-family: "PP Neue Montreal", sans-serif;
+    font-weight: 400;
+  }
+
+  :root {
+    --spacing-base: 1rem;
+    --spacing-md: 1.5rem;
+    --spacing-lg: 2rem;
+    --color-text: #ffffff;
+    --color-text-dim: 0.6;
+    --transition-medium: 0.3s ease;
+    --transition-luxury: 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-premium: 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+    --font-size-base: 14px;
+    --blur-amount: 20px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+  }
+
+  body {
+    font-family: "PP Neue Montreal", sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle Film Grain */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent url("http://assets.iceable.com/img/noise-transparent.png") repeat 0 0;
+    background-size: 200px 200px;
+    animation: noise-animation 2s steps(2) infinite;
+    opacity: 0.25;
+    z-index: 100;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Pause noise during drag */
+  body.dragging::before {
+    animation-play-state: paused;
+    opacity: 0.12;
+  }
+
+  @keyframes noise-animation {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(-1px, 1px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* Typography */
+  p {
+    display: block;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h3 {
+    font-size: 14px;
+    margin-bottom: var(--spacing-base);
+    font-weight: 600;
+  }
+
+  /* Canvas Container */
+  .canvas-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    cursor: grab;
+    background: #000;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout style paint;
+  }
+
+  .canvas-container.hovering-clickable {
+    cursor: pointer;
+  }
+
+  .canvas-container:active {
+    cursor: grabbing;
+  }
+
+  body.dragging .canvas-container {
+    cursor: grabbing;
+  }
+
+  body.dragging .canvas-container.hovering-clickable {
+    cursor: grabbing;
+  }
+
+  #galleryCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform: scale(1) translateZ(0);
+    transform-origin: center center;
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    image-rendering: auto;
+  }
+
+  #galleryCanvas.dragging {
+    transform: scale(0.94) translateZ(0);
+    transition: transform 0.85s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+  }
+
+  body.dragging .canvas-container {
+    cursor: grabbing;
+  }
+
+  /* Loading Indicator */
+  .loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10005;
+    text-align: center;
+    transition: opacity 0.5s ease;
+  }
+
+  .loading-indicator.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Canvas Grid Items - Rendered on Canvas */
+
+  /* Custom Cursor Enhancement - Premium Feel */
+  .custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    z-index: 10003;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.4s ease;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+    mix-blend-mode: difference;
+    will-change: transform;
+  }
+
+  .custom-cursor.active {
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  }
+
+  .custom-cursor.hover {
+    transform: translate(-50%, -50%) scale(3);
+    background: rgba(255, 255, 255, 0.3);
+    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .custom-cursor.grabbing {
+    transform: translate(-50%, -50%) scale(0.7);
+    transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+
+
+  /* Project Title - Enhanced */
+  .project-title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    z-index: 10002;
+    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.8));
+    contain: layout style;
+  }
+
+  .project-title p {
+    position: relative;
+    height: 56px;
+    color: #fff;
+    overflow: hidden;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  }
+
+  .project-title p .word {
+    font-family: "PP Neue Montreal", sans-serif;
+    font-size: 48px;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    display: inline-block;
+    will-change: transform;
+    font-weight: 800;
+    background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Expanded View - Canvas Based */
+  .expanded-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .expanded-view.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .expanded-view img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .overlay.active {
+    pointer-events: auto;
+  }
+
+  /* Vignettes */
+  .page-vignette-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  .page-vignette,
+  .page-vignette-strong,
+  .page-vignette-extreme {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .page-vignette {
+    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.5);
+  }
+  .page-vignette-strong {
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
+  }
+  .page-vignette-extreme {
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+  }
+
+  /* Footer */
+  .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    padding: var(--spacing-md);
+    z-index: 10000;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: var(--spacing-base);
+    contain: layout style;
+  }
+
+  .coordinates-section {
+    grid-column: 1 / span 3;
+    font-family: "TheGoodMonolith", monospace;
+  }
+
+  .links-section {
+    grid-column: 5 / span 4;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-base);
+  }
+
+  .info-section {
+    grid-column: 9 / span 4;
+    text-align: right;
+  }
+
+  .key-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border: 1px solid var(--color-text);
+    border-radius: 3px;
+    font-size: 11px;
+    margin: 0 3px;
+    min-width: 24px;
+    height: 20px;
+  }
+
+  /* Scroll Hint */
+  .scroll-hint {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  .scroll-hint.hidden {
+    opacity: 0;
+  }
+
+  .scroll-hint-icon {
+    margin: 0 auto 12px;
+    animation: scrollBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollBounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(10px);
+    }
+  }
+
+  .scroll-hint p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Performance Optimizations */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  canvas {
+    will-change: contents;
+  }
+
+  body.dragging canvas {
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .footer {
+      padding: var(--spacing-base);
+      grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .coordinates-section { grid-column: 1 / span 2; }
+    .links-section { grid-column: 3 / span 2; }
+    .info-section { grid-column: 5 / span 2; }
+    
+    .project-title p .word {
+      font-size: 32px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body::before {
+      background-size: 150px 150px;
+      opacity: 0.2;
+    }
+
+    .footer {
+      padding: 12px;
+      grid-template-columns: 1fr 1fr;
+      row-gap: 12px;
+    }
+    
+    .coordinates-section { grid-column: 1 / span 1; font-size: 12px; }
+    .links-section { 
+      grid-column: 1 / span 2; 
+      text-align: center;
+      font-size: 12px;
+    }
+    .info-section { 
+      grid-column: 2 / span 1; 
+      text-align: right;
+      font-size: 12px;
+    }
+    
+    .project-title p {
+      height: 32px;
+    }
+    
+    .project-title p .word {
+      font-size: 24px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    
+    body::before {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // @ts-ignore - External ESM imports
+  import("https://esm.sh/gsap").then(({ default: gsap }) => {
+    // @ts-ignore
+    return import("https://esm.sh/split-type").then(({ default: SplitType }) => {
+      // ============================================
+      // CANVAS-BASED INFINITE GALLERY IMPLEMENTATION
+      // ============================================
+
+      // Portfolio data
+      const items = [
+        { name: "Fisher's Journey", desc: "« Deep house waves meets visual storytelling »" },
+        { name: "Anjunadeep Waves", desc: "« Progressive melodies in motion »" },
+        { name: "Coldplay Dreams", desc: "« Ethereal concert experience captured »" },
+        { name: "Bryan Adams Classic", desc: "« Rock legend in timeless frames »" },
+        { name: "Klang Universe", desc: "« Electronic soundscapes visualized »" },
+        { name: "Klang Preview One", desc: "« First glimpse into sonic dimensions »" },
+        { name: "Klang Preview Two", desc: "« Rhythmic patterns emerge »" },
+        { name: "Klang Preview Three", desc: "« Final chapter of the trilogy »" },
+        { name: "Ben Böhmer Session", desc: "« Melodic techno atmosphere »" },
+        { name: "Main Banner Project", desc: "« Hero visual statement piece »" }
+      ];
+
+      const imageUrls = [
+        '/Fisher.jpg',
+        '/anjunadeep.jpg',
+        '/coldplay.jpg',
+        '/bryan-adams.png',
+        '/klang.jpg',
+        '/klang-preview.jpg',
+        '/klang-preview-2.jpg',
+        '/klang-preview-3.jpg',
+        '/BenBohmer.jpg',
+        '/main-banner-image.jpg'
+      ];
+
+      // DOM Elements
+      const canvasContainer = document.querySelector(".canvas-container") as HTMLElement;
+      const canvas = document.getElementById("galleryCanvas") as HTMLCanvasElement;
+      const overlay = document.getElementById("overlay") as HTMLElement;
+      const projectTitleElement = document.querySelector(".project-title p") as HTMLElement;
+      const customCursor = document.getElementById("customCursor") as HTMLElement;
+      const scrollHint = document.getElementById("scrollHint") as HTMLElement;
+      const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
+
+      if (!canvasContainer || !canvas || !overlay || !projectTitleElement) {
+        console.error("Required elements not found");
+        return;
+      }
+
+      // Canvas setup - optimized for smooth rendering
+      const ctx = canvas.getContext("2d", { 
+        alpha: false,
+        desynchronized: true,
+        willReadFrequently: false
+      });
+
+      if (!ctx) {
+        console.error("Could not get canvas context");
+        return;
+      }
+
+      // Set image smoothing for better quality during transforms
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      
+      // Function to adjust rendering quality based on interaction
+      function setRenderingQuality(highQuality: boolean) {
+        if (!ctx) return;
+        ctx.imageSmoothingQuality = highQuality ? "high" : "low";
+      }
+
+      // Set canvas size to match viewport
+      function resizeCanvas() {
+        if (!ctx) return;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        ctx.scale(dpr, dpr);
+      }
+
+      resizeCanvas();
+
+      // ============================================
+      // IMAGE PRELOADING SYSTEM
+      // ============================================
+      
+      interface ImageData {
+        img: HTMLImageElement;
+        width: number;
+        height: number;
+        aspectRatio: number;
+      }
+
+      const images: HTMLImageElement[] = [];
+      const imageData: ImageData[] = [];
+      let imagesLoaded = 0;
+
+      // Calculate dimensions that preserve aspect ratio within max bounds
+      function calculateImageSize(naturalWidth: number, naturalHeight: number): { width: number; height: number } {
+        const maxWidth = ITEM_WIDTH;
+        const maxHeight = ITEM_HEIGHT;
+        const aspectRatio = naturalWidth / naturalHeight;
+        
+        let width = maxWidth;
+        let height = width / aspectRatio;
+        
+        // If height exceeds max, scale down
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = height * aspectRatio;
+        }
+        
+        return { width: Math.round(width), height: Math.round(height) };
+      }
+
+      function preloadImages(): Promise<void> {
+        return new Promise((resolve) => {
+          if (imageUrls.length === 0) {
+            resolve();
+            return;
+          }
+
+          let loaded = 0;
+          
+          imageUrls.forEach((url, index) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+              loaded++;
+              imagesLoaded++;
+              
+              // Calculate size preserving aspect ratio
+              const size = calculateImageSize(img.naturalWidth, img.naturalHeight);
+              
+              imageData[index] = {
+                img,
+                width: size.width,
+                height: size.height,
+                aspectRatio: img.naturalWidth / img.naturalHeight
+              };
+              
+              console.log(`Loaded ${loaded}/${imageUrls.length}: ${url} (${img.naturalWidth}x${img.naturalHeight} → ${size.width}x${size.height})`);
+              
+              if (loaded === imageUrls.length) {
+                console.log("✅ All images preloaded with natural aspect ratios!");
+                resolve();
+              }
+            };
+            img.onerror = () => {
+              console.error(`❌ Failed to load: ${url}`);
+              loaded++;
+              if (loaded === imageUrls.length) {
+                resolve();
+              }
+            };
+            img.src = url;
+            images[index] = img;
+          });
+        });
+      }
+
+      // Hide loading indicator
+      function hideLoadingIndicator() {
+        if (loadingIndicator) {
+          loadingIndicator.classList.add('hidden');
+          setTimeout(() => {
+            if (loadingIndicator.parentNode) {
+              loadingIndicator.remove();
+            }
+          }, 500);
+        }
+      }
+
+      // Hide scroll hint after first interaction
+      let hasInteracted = false;
+      function hideScrollHint() {
+        if (!hasInteracted && scrollHint) {
+          hasInteracted = true;
+          scrollHint.classList.add('hidden');
+          setTimeout(() => {
+            if (scrollHint.parentNode) {
+              scrollHint.remove();
+            }
+          }, 600);
+        }
+      }
+
+      // ============================================
+      // CUSTOM CURSOR - Ultra-Premium Delayed Feel (Optimized)
+      // ============================================
+      
+      let cursorX = 0;
+      let cursorY = 0;
+      let targetCursorX = 0;
+      let targetCursorY = 0;
+      const cursorSpeed = 0.05;  // Even slower follow (was 0.08)
+      let cursorNeedsUpdate = false;
+
+      if (customCursor) {
+        document.addEventListener('mousemove', (e) => {
+          targetCursorX = e.clientX;
+          targetCursorY = e.clientY;
+          cursorNeedsUpdate = true;
+          customCursor.classList.add('active');
+        }, { passive: true });
+
+        document.addEventListener('mouseleave', () => {
+          customCursor.classList.remove('active');
+        });
+
+        function animateCursor() {
+          if (cursorNeedsUpdate) {
+            const dx = targetCursorX - cursorX;
+            const dy = targetCursorY - cursorY;
+            
+            // Only update if there's significant movement
+            if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+              cursorX += dx * cursorSpeed;
+              cursorY += dy * cursorSpeed;
+              
+              customCursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+            } else {
+              cursorNeedsUpdate = false;
+            }
+          }
+          
+          requestAnimationFrame(animateCursor);
+        }
+        
+        animateCursor();
+      }
+
+      // ============================================
+      // GRID CONFIGURATION
+      // ============================================
+      
+      const isMobile = window.innerWidth <= 768;
+      const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+      
+      // Grid settings (0.8x smaller = 20% reduction)
+      const ITEM_WIDTH = isMobile ? 224 : 320;  // Was 280 / 400
+      const ITEM_HEIGHT = isMobile ? 160 : 240;  // Was 200 / 300
+      const ITEM_GAP = isMobile ? 40 : 60;
+      const CELL_WIDTH = ITEM_WIDTH + ITEM_GAP;
+      const CELL_HEIGHT = ITEM_HEIGHT + ITEM_GAP;
+      const COLUMNS = 5;
+      const ROWS_PER_SCREEN = 4;
+
+      // Physics settings - Ultra-premium delayed feel
+      const DRAG_EASE = 0.0237;             // 18% slower response (was 0.028)
+      const VELOCITY_DAMPING = 0.975;       // More float, less friction
+      const DRAG_MULTIPLIER = 0.7;          // More resistance for weighted feel
+      const MOMENTUM_FACTOR = isMobile ? 180 : 299;  // 15% more momentum (was 260)
+      const MIN_VELOCITY = 0.003;           // Lower threshold for longer animation
+
+      // ============================================
+      // STATE MANAGEMENT
+      // ============================================
+      
+      // Camera/viewport state
+      let offsetX = 0;
+      let offsetY = 0;
+      let targetOffsetX = 0;
+      let targetOffsetY = 0;
+      let velocityX = 0;
+      let velocityY = 0;
+
+      // Drag state
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let lastDragTime = Date.now();
+      let mouseHasMoved = false;
+
+      // Expansion state
+      let isExpanded = false;
+      let expandedImageIndex = -1;
+      let titleSplit: any = null;
+
+      // Performance tracking
+      let lastRenderTime = 0;
+      const targetFPS = 60;
+      const frameTime = 1000 / targetFPS;
+      let isDirty = true; // Track if canvas needs redraw
+      let lastOffsetX = 0;
+      let lastOffsetY = 0;
+      
+      // Cached visible items to reduce calculations
+      let cachedVisibleItems: GridItem[] = [];
+      let lastVisibleBoundsCheck = { minCol: 0, maxCol: 0, minRow: 0, maxRow: 0 };
+
+      // ============================================
+      // TITLE ANIMATIONS
+      // ============================================
+      
+      function setAndAnimateTitle(title: string) {
+        if (titleSplit) titleSplit.revert();
+        projectTitleElement.textContent = title;
+        titleSplit = new SplitType(projectTitleElement, { types: "words" });
+        gsap.set(titleSplit.words, { y: "100%" });
+      }
+
+      function animateTitleIn() {
+        if (!titleSplit) return;
+        gsap.fromTo(titleSplit.words, 
+          { y: "120%", opacity: 0, scale: 0.8 }, 
+          { 
+            y: "0%", 
+            opacity: 1, 
+            scale: 1,
+            duration: 1.4, 
+            stagger: 0.1, 
+            ease: "power4.out" 
+          }
+        );
+      }
+
+      function animateTitleOut() {
+        if (!titleSplit) return;
+        gsap.to(titleSplit.words, 
+          { 
+            y: "-120%", 
+            opacity: 0, 
+            scale: 0.8,
+            duration: 1.2, 
+            stagger: 0.06, 
+            ease: "power4.in" 
+          }
+        );
+      }
+
+      function animateOverlayIn() {
+        gsap.to(overlay, { 
+          opacity: 0.94, 
+          duration: 1.5, 
+          ease: "power3.inOut"
+        });
+      }
+
+      function animateOverlayOut() {
+        gsap.to(overlay, { 
+          opacity: 0, 
+          duration: 1.3, 
+          ease: "power3.inOut" 
+        });
+      }
+
+      // ============================================
+      // INFINITE GRID MATHEMATICS
+      // ============================================
+      
+      interface GridItem {
+        col: number;
+        row: number;
+        x: number;
+        y: number;
+        imageIndex: number;
+        screenX: number;
+        screenY: number;
+      }
+
+      // Calculate which image to show for a grid cell
+      function getImageIndex(col: number, row: number): number {
+        // Create repeating pattern across infinite grid
+        const index = Math.abs((row * COLUMNS + col) % images.length);
+        return index;
+      }
+
+      // Calculate grid position for a cell
+      function getGridPosition(col: number, row: number): { x: number; y: number } {
+        return {
+          x: col * CELL_WIDTH,
+          y: row * CELL_HEIGHT
+        };
+      }
+
+      // Convert grid position to screen position
+      function gridToScreen(gridX: number, gridY: number): { x: number; y: number } {
+        return {
+          x: gridX + offsetX,
+          y: gridY + offsetY
+        };
+      }
+
+      // Calculate visible grid bounds based on current offset
+      function getVisibleGridBounds(): { 
+        minCol: number; 
+        maxCol: number; 
+        minRow: number; 
+        maxRow: number; 
+      } {
+        const bufferZone = 1; // Extra cells to render off-screen
+        
+        const minCol = Math.floor(-offsetX / CELL_WIDTH) - bufferZone;
+        const maxCol = Math.ceil((-offsetX + window.innerWidth) / CELL_WIDTH) + bufferZone;
+        const minRow = Math.floor(-offsetY / CELL_HEIGHT) - bufferZone;
+        const maxRow = Math.ceil((-offsetY + window.innerHeight) / CELL_HEIGHT) + bufferZone;
+
+        return { minCol, maxCol, minRow, maxRow };
+      }
+
+      // Get all visible grid items (with caching)
+      function getVisibleItems(forceRecalculate = false): GridItem[] {
+        const bounds = getVisibleGridBounds();
+        
+        // Check if bounds changed significantly
+        const boundsChanged = forceRecalculate ||
+          bounds.minCol !== lastVisibleBoundsCheck.minCol ||
+          bounds.maxCol !== lastVisibleBoundsCheck.maxCol ||
+          bounds.minRow !== lastVisibleBoundsCheck.minRow ||
+          bounds.maxRow !== lastVisibleBoundsCheck.maxRow;
+        
+        if (boundsChanged) {
+          lastVisibleBoundsCheck = bounds;
+          cachedVisibleItems = [];
+
+          for (let row = bounds.minRow; row <= bounds.maxRow; row++) {
+            for (let col = bounds.minCol; col <= bounds.maxCol; col++) {
+              const gridPos = getGridPosition(col, row);
+              const screenPos = gridToScreen(gridPos.x, gridPos.y);
+              const imageIndex = getImageIndex(col, row);
+
+              cachedVisibleItems.push({
+                col,
+                row,
+                x: gridPos.x,
+                y: gridPos.y,
+                imageIndex,
+                screenX: screenPos.x,
+                screenY: screenPos.y
+              });
+            }
+          }
+        } else {
+          // Update screen positions for cached items
+          for (const item of cachedVisibleItems) {
+            const screenPos = gridToScreen(item.x, item.y);
+            item.screenX = screenPos.x;
+            item.screenY = screenPos.y;
+          }
+        }
+
+        return cachedVisibleItems;
+      }
+
+      // ============================================
+      // CANVAS RENDERING
+      // ============================================
+      
+      function renderCanvas() {
+        if (!ctx) return;
+
+        // Clear canvas efficiently
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+        // Get visible items
+        const visibleItems = getVisibleItems();
+
+        // Dynamic quality: reduce shadows during fast movement
+        const isMovingFast = isDragging || Math.abs(velocityX) > 0.5 || Math.abs(velocityY) > 0.5;
+        
+        if (isMovingFast) {
+          // No shadow during fast movement for better performance
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+        } else {
+          // Full quality when still or slow movement
+          ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 10;
+        }
+
+        // Render each visible item
+        for (const item of visibleItems) {
+          const imgData = imageData[item.imageIndex];
+          
+          // Skip if image not loaded
+          if (!imgData || !imgData.img || !imgData.img.complete) continue;
+
+          // Center image in cell if it's smaller than cell size
+          const offsetX = (ITEM_WIDTH - imgData.width) / 2;
+          const offsetY = (ITEM_HEIGHT - imgData.height) / 2;
+
+          // Calculate integer pixel positions to prevent sub-pixel rendering
+          const x = Math.round(item.screenX + offsetX);
+          const y = Math.round(item.screenY + offsetY);
+          const w = imgData.width;
+          const h = imgData.height;
+
+          // Draw image at its natural aspect ratio
+          ctx.drawImage(imgData.img, x, y, w, h);
+        }
+
+        // Only draw borders when not moving fast
+        if (!isMovingFast) {
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+          ctx.lineWidth = 1;
+
+          for (const item of visibleItems) {
+            const imgData = imageData[item.imageIndex];
+            if (!imgData || !imgData.img || !imgData.img.complete) continue;
+
+            const offsetX = (ITEM_WIDTH - imgData.width) / 2;
+            const offsetY = (ITEM_HEIGHT - imgData.height) / 2;
+            const x = Math.round(item.screenX + offsetX);
+            const y = Math.round(item.screenY + offsetY);
+
+            ctx.strokeRect(x, y, imgData.width, imgData.height);
+          }
+        }
+      }
+
+      // ============================================
+      // CLICK DETECTION & EXPANSION
+      // ============================================
+      
+      // Find which grid item was clicked
+      function getItemAtPosition(mouseX: number, mouseY: number): GridItem | null {
+        const visibleItems = getVisibleItems();
+        
+        for (const item of visibleItems) {
+          const imgData = imageData[item.imageIndex];
+          if (!imgData) continue;
+          
+          // Calculate centered position
+          const offsetX = (ITEM_WIDTH - imgData.width) / 2;
+          const offsetY = (ITEM_HEIGHT - imgData.height) / 2;
+          
+          const itemX = item.screenX + offsetX;
+          const itemY = item.screenY + offsetY;
+          
+          if (
+            mouseX >= itemX &&
+            mouseX <= itemX + imgData.width &&
+            mouseY >= itemY &&
+            mouseY <= itemY + imgData.height
+          ) {
+            return item;
+          }
+        }
+        
+        return null;
+      }
+
+      function handleCanvasClick(e: MouseEvent) {
+        if (mouseHasMoved || isDragging) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const clickedItem = getItemAtPosition(mouseX, mouseY);
+        
+        if (clickedItem) {
+          expandImage(clickedItem.imageIndex);
+        }
+      }
+
+      function expandImage(imageIndex: number) {
+        if (isExpanded) return;
+        
+        isExpanded = true;
+        expandedImageIndex = imageIndex;
+        
+        // Stop rendering canvas temporarily
+        velocityX = 0;
+        velocityY = 0;
+        
+        // Set title
+        setAndAnimateTitle(items[imageIndex % items.length].name);
+        
+        // Show overlay
+        overlay.classList.add("active");
+        animateOverlayIn();
+        
+        // Create expanded image element
+        const expandedImg = document.createElement("img");
+        expandedImg.src = images[imageIndex].src;
+        expandedImg.style.cssText = `
+          max-width: 90%;
+          max-height: 90vh;
+          object-fit: contain;
+          box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8);
+          cursor: pointer;
+          opacity: 0;
+          transform: scale(0.9);
+        `;
+        expandedImg.className = "expanded-image";
+        
+        expandedImg.onclick = closeExpandedImage;
+        overlay.appendChild(expandedImg);
+        
+        // Animate in with ultra-premium delay
+        gsap.delayedCall(0.7, animateTitleIn);
+        gsap.to(expandedImg, {
+          opacity: 1,
+          scale: 1,
+          duration: 1.6,
+          ease: "power4.out"
+        });
+      }
+
+      function closeExpandedImage() {
+        if (!isExpanded) return;
+        
+        const expandedImg = overlay.querySelector(".expanded-image");
+        
+        animateTitleOut();
+        animateOverlayOut();
+        
+        if (expandedImg) {
+          gsap.to(expandedImg, {
+            opacity: 0,
+            scale: 0.9,
+            duration: 1.2,
+            ease: "power4.in",
+            onComplete: () => {
+              expandedImg.remove();
+              overlay.classList.remove("active");
+              isExpanded = false;
+              expandedImageIndex = -1;
+            }
+          });
+        } else {
+          overlay.classList.remove("active");
+          isExpanded = false;
+          expandedImageIndex = -1;
+        }
+      }
+
+      // ============================================
+      // ANIMATION LOOP - SMOOTH PHYSICS
+      // ============================================
+      
+      function updatePhysics() {
+        if (isExpanded) return false;
+
+        // Smooth easing towards target
+        const deltaX = (targetOffsetX - offsetX) * DRAG_EASE;
+        const deltaY = (targetOffsetY - offsetY) * DRAG_EASE;
+        
+        // Check if there's significant change
+        const hasChanged = Math.abs(deltaX) > 0.01 || Math.abs(deltaY) > 0.01 || 
+                          Math.abs(velocityX) > MIN_VELOCITY || Math.abs(velocityY) > MIN_VELOCITY;
+        
+        if (hasChanged) {
+          offsetX += deltaX;
+          offsetY += deltaY;
+          
+          // Apply momentum when not dragging
+          if (!isDragging) {
+            velocityX *= VELOCITY_DAMPING;
+            velocityY *= VELOCITY_DAMPING;
+            
+            // Stop very small velocities
+            if (Math.abs(velocityX) < MIN_VELOCITY && Math.abs(velocityY) < MIN_VELOCITY) {
+              velocityX = 0;
+              velocityY = 0;
+            }
+          }
+        }
+        
+        return hasChanged;
+      }
+
+      function animate(currentTime: number) {
+        requestAnimationFrame(animate);
+        
+        // Throttle to target FPS
+        if (currentTime - lastRenderTime < frameTime) {
+          return;
+        }
+        
+        lastRenderTime = currentTime;
+
+        // Update physics and check if anything changed
+        const physicsChanged = updatePhysics();
+        
+        // Only render if something changed or marked dirty
+        if (!isExpanded && (physicsChanged || isDirty)) {
+          // Check if offset actually changed enough to warrant a redraw
+          const offsetChanged = Math.abs(offsetX - lastOffsetX) > 0.1 || 
+                               Math.abs(offsetY - lastOffsetY) > 0.1;
+          
+          if (offsetChanged || isDirty) {
+            renderCanvas();
+            lastOffsetX = offsetX;
+            lastOffsetY = offsetY;
+            isDirty = false;
+          }
+        }
+      }
+
+      // ============================================
+      // DRAG INTERACTION HANDLERS
+      // ============================================
+      
+      function startDrag(clientX: number, clientY: number) {
+        if (isExpanded) return;
+        
+        isDragging = true;
+        mouseHasMoved = false;
+        dragStartX = clientX;
+        dragStartY = clientY;
+        lastDragTime = Date.now();
+        isDirty = true;
+        
+        // Reduce rendering quality during drag for better performance
+        setRenderingQuality(false);
+        
+        // Clear hover state during drag
+        if (isHoveringClickable) {
+          isHoveringClickable = false;
+          canvasContainer.classList.remove('hovering-clickable');
+          if (customCursor) customCursor.classList.remove('hover');
+        }
+        
+        hideScrollHint();
+        document.body.classList.add("dragging");
+        canvas.classList.add("dragging");
+        if (customCursor) customCursor.classList.add('grabbing');
+      }
+
+      function updateDrag(clientX: number, clientY: number) {
+        if (!isDragging || isExpanded) return;
+        
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+        
+        // Early return if no significant movement
+        if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return;
+        
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+          mouseHasMoved = true;
+        }
+        
+        // Calculate velocity for momentum
+        const now = Date.now();
+        const dt = Math.max(10, now - lastDragTime);
+        lastDragTime = now;
+        
+        const newVelX = dx / dt;
+        const newVelY = dy / dt;
+        
+        // Smooth velocity with blending
+        velocityX = velocityX * 0.7 + newVelX * 0.3;
+        velocityY = velocityY * 0.7 + newVelY * 0.3;
+        
+        // Update target position
+        targetOffsetX += dx * DRAG_MULTIPLIER;
+        targetOffsetY += dy * DRAG_MULTIPLIER;
+        
+        dragStartX = clientX;
+        dragStartY = clientY;
+        isDirty = true;
+      }
+
+      function endDrag(applyMomentum = true) {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        document.body.classList.remove("dragging");
+        canvas.classList.remove("dragging");
+        if (customCursor) customCursor.classList.remove('grabbing');
+        
+        // Restore high quality rendering after drag
+        setRenderingQuality(true);
+        
+        if (applyMomentum && (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1)) {
+          // Apply momentum
+          targetOffsetX += velocityX * MOMENTUM_FACTOR;
+          targetOffsetY += velocityY * MOMENTUM_FACTOR;
+          isDirty = true;
+        } else {
+          velocityX = 0;
+          velocityY = 0;
+        }
+      }
+
+      // Track hovering state with throttling
+      let isHoveringClickable = false;
+      let pendingHoverCheck = false;
+      let lastMouseX = 0;
+      let lastMouseY = 0;
+
+      // Throttled hover check using requestAnimationFrame
+      function checkHoverState() {
+        if (!pendingHoverCheck || isDragging || isExpanded) {
+          pendingHoverCheck = false;
+          return;
+        }
+        
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = lastMouseX - rect.left;
+        const mouseY = lastMouseY - rect.top;
+        const itemAtPos = getItemAtPosition(mouseX, mouseY);
+        
+        const shouldHover = !!itemAtPos;
+        if (shouldHover !== isHoveringClickable) {
+          isHoveringClickable = shouldHover;
+          if (shouldHover) {
+            canvasContainer.classList.add('hovering-clickable');
+            if (customCursor) customCursor.classList.add('hover');
+          } else {
+            canvasContainer.classList.remove('hovering-clickable');
+            if (customCursor) customCursor.classList.remove('hover');
+          }
+        }
+        
+        pendingHoverCheck = false;
+      }
+
+      // Mouse events
+      canvas.addEventListener("mousedown", (e) => {
+        if (isExpanded) return;
+        e.preventDefault();
+        startDrag(e.clientX, e.clientY);
+      });
+
+      canvas.addEventListener("click", (e) => {
+        if (!mouseHasMoved && !isDragging) {
+          handleCanvasClick(e);
+        }
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        
+        // Only schedule hover check if not already pending
+        if (!isDragging && !isExpanded && !pendingHoverCheck) {
+          pendingHoverCheck = true;
+          requestAnimationFrame(checkHoverState);
+        }
+      }, { passive: true });
+
+      window.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          updateDrag(e.clientX, e.clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener("mouseup", () => endDrag(true));
+      window.addEventListener("blur", () => endDrag(false));
+      
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (isExpanded) {
+            closeExpandedImage();
+          } else if (isDragging) {
+            endDrag(false);
+          }
+        }
+      });
+
+      // Touch events
+      canvas.addEventListener("touchstart", (e) => {
+        if (isExpanded || e.touches.length === 0) return;
+        e.preventDefault();
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: false });
+
+      canvas.addEventListener("touchmove", (e) => {
+        if (isExpanded || e.touches.length === 0) return;
+        e.preventDefault();
+        updateDrag(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: false });
+
+      canvas.addEventListener("touchend", () => endDrag(true), { passive: true });
+      window.addEventListener("touchcancel", () => endDrag(false), { passive: true });
+
+      // Overlay click to close
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay && isExpanded) {
+          closeExpandedImage();
+        }
+      });
+
+      // ============================================
+      // SCROLL WHEEL INTERACTION - Ultra-Premium Feel
+      // ============================================
+      
+      const WHEEL_MULTIPLIER = isMobile ? 0.6 : 0.783;  // 15% slower (was 0.9)
+      const WHEEL_MOMENTUM = 0.198;                     // 10% more momentum (was 0.18)
+      
+      canvas.addEventListener("wheel", (e) => {
+        if (isExpanded) return;
+        
+        e.preventDefault();
+        
+        hideScrollHint();
+        
+        // Apply scroll delta to target position with premium easing
+        // Negative because wheel deltaY is opposite to intended movement
+        targetOffsetX -= e.deltaX * WHEEL_MULTIPLIER;
+        targetOffsetY -= e.deltaY * WHEEL_MULTIPLIER;
+        
+        // Add smooth momentum effect for premium feel
+        velocityX = -e.deltaX * WHEEL_MOMENTUM;
+        velocityY = -e.deltaY * WHEEL_MOMENTUM;
+        
+        isDirty = true;
+      }, { passive: false });
+
+      // ============================================
+      // RESIZE HANDLER
+      // ============================================
+      
+      let resizeTimeout: ReturnType<typeof setTimeout> | undefined;
+      window.addEventListener("resize", () => {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          resizeCanvas();
+          isDirty = true;
+        }, 150);
+      }, { passive: true });
+
+      // ============================================
+      // INITIALIZATION
+      // ============================================
+      
+      async function init() {
+        console.log("🎨 Initializing Canvas Gallery...");
+        
+        // Preload all images
+        await preloadImages();
+        
+        // Hide loading indicator
+        hideLoadingIndicator();
+        
+        // Mark as dirty to trigger initial render
+        isDirty = true;
+        
+        // Start animation loop
+        requestAnimationFrame(animate);
+        
+        console.log("✅ Canvas Gallery initialized!");
+        console.log("✨ Features: Canvas Rendering • Infinite Grid • Smooth Drag • Momentum Physics • Click to Expand");
+        console.log("🚀 Performance: Dirty Flag System • RAF Throttling • Dynamic Quality • Cached Calculations");
+      }
+
+      // Start the app
+      init().catch(err => {
+        console.error("Failed to initialize gallery:", err);
+      });
+    });
+  });
+</script>
+</Layout>

@@ -1,0 +1,244 @@
+---
+// Hero sections with text reveal/clip effect
+---
+
+<div class="hero-wrapper">
+  <!-- Background Sections -->
+  <div class="hero-section" data-index="0">
+    <video class="hero-media" autoplay muted loop playsinline>
+      <source src="/korolova.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div class="hero-section" data-index="1">
+    <img class="hero-media" src="/coldplay.jpg" alt="Coldplay" />
+  </div>
+
+  <div class="hero-section" data-index="2">
+    <video class="hero-media" autoplay muted loop playsinline>
+      <source src="/martin-garrix.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <div class="hero-section" data-index="3">
+    <img class="hero-media" src="/Fisher.jpg" alt="Fisher" />
+  </div>
+</div>
+
+<!-- Text elements outside sections - truly fixed to viewport center -->
+<div class="section-text" data-section="0">
+  <h1>
+    CAPTURE
+    <!-- Kreativproduktion<br />
+    für Marketing<br />
+    und Film -->
+  </h1>
+</div>
+
+<div class="section-text" data-section="1">
+  <h1>
+    ELEVATE
+    <!-- Capturing the<br />
+    Energy of Live<br />
+    Music & Art -->
+  </h1>
+</div>
+
+<div class="section-text" data-section="2">
+  <h1>
+    AMPLIFY
+    <!-- Visual Storytelling<br />
+    for Artists<br />
+    & Festivals -->
+  </h1>
+</div>
+
+<div class="section-text" data-section="3">
+  <h1>
+    UNLEASH
+    <!-- Unleash the<br />
+    Remarkable<br />
+    Moments -->
+  </h1>
+</div>
+
+<script>
+  function initHero() {
+    const wrapper = document.querySelector('.hero-wrapper') as HTMLElement;
+    const sections = document.querySelectorAll('.hero-section');
+    const texts = document.querySelectorAll('.section-text');
+    
+    if (!wrapper || !sections.length || !texts.length) return;
+
+    let currentScroll = 0;
+    let targetScroll = 0;
+
+    function updateSections() {
+      targetScroll = window.pageYOffset;
+      currentScroll += (targetScroll - currentScroll) * 0.1;
+
+      const vh = window.innerHeight;
+      const wrapperTop = wrapper.offsetTop;
+      const wrapperHeight = wrapper.offsetHeight;
+      const scrolled = currentScroll - wrapperTop;
+
+      // Hide everything if scrolled past the wrapper
+      if (scrolled > wrapperHeight) {
+        sections.forEach((section) => {
+          (section as HTMLElement).style.opacity = '0';
+        });
+        texts.forEach((text) => {
+          (text as HTMLElement).style.opacity = '0';
+        });
+        return;
+      }
+
+      // Reset opacity when in view
+      sections.forEach((section) => {
+        (section as HTMLElement).style.opacity = '1';
+      });
+      texts.forEach((text) => {
+        (text as HTMLElement).style.opacity = '1';
+      });
+
+      sections.forEach((section, index) => {
+        const el = section as HTMLElement;
+        const text = texts[index] as HTMLElement;
+        
+        const sectionStart = index * vh;
+        const progress = (scrolled - sectionStart) / vh;
+        const slideAmount = Math.max(0, (1 - progress) * 100);
+
+        // Check next section for covering effect
+        const hasNextSection = index < sections.length - 1;
+        let nextSlideAmount = 100; // Default: next section fully below viewport
+        
+        if (hasNextSection) {
+          const nextSectionStart = (index + 1) * vh;
+          const nextProgress = (scrolled - nextSectionStart) / vh;
+          nextSlideAmount = Math.max(0, (1 - nextProgress) * 100);
+        }
+
+        // Z-index stacking for sections
+        el.style.zIndex = (index + 1).toString();
+
+        // Position section
+        if (scrolled < sectionStart) {
+          el.style.transform = `translateY(100%)`;
+        } else if (progress >= 0 && progress < 1) {
+          el.style.transform = `translateY(${slideAmount}%)`;
+        } else {
+          el.style.transform = `translateY(0)`;
+        }
+
+        // Clip text based on both current section and next section positions
+        if (text) {
+          if (scrolled < sectionStart) {
+            // Not reached yet
+            text.style.clipPath = 'inset(100% 0 0 0)';
+          } else if (progress >= 0 && progress < 1) {
+            // Currently transitioning in - reveal from top with section
+            text.style.clipPath = `inset(${slideAmount}% 0 0 0)`;
+          } else if (nextSlideAmount < 100) {
+            // Section is fully visible, but next section is covering it
+            // Clip from bottom based on where next section's top edge is
+            const bottomClip = 100 - nextSlideAmount;
+            text.style.clipPath = `inset(0 0 ${bottomClip}% 0)`;
+          } else {
+            // Fully visible, no next section covering
+            text.style.clipPath = 'inset(0 0 0 0)';
+          }
+        }
+      });
+    }
+
+    function animate() {
+      updateSections();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHero);
+  } else {
+    initHero();
+  }
+</script>
+
+<style>
+  .hero-wrapper {
+    position: relative;
+    width: 100%;
+    height: 400vh;
+    background: #000;
+  }
+
+  .hero-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    transform: translateY(100%);
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .hero-media {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+  }
+
+  /* Text containers span full viewport height for accurate clipping */
+  .section-text {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 1;
+    clip-path: inset(100% 0 0 0);
+    transition: opacity 0.3s ease-out;
+    will-change: clip-path, opacity;
+  }
+
+  /* Z-index for text stacking */
+  .section-text[data-section="0"] { z-index: 101; }
+  .section-text[data-section="1"] { z-index: 102; }
+  .section-text[data-section="2"] { z-index: 103; }
+  .section-text[data-section="3"] { z-index: 104; }
+
+  .section-text h1 {
+    font-size: clamp(2.5rem, 8vw, 7rem);
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+    text-align: center;
+    margin: 0;
+    padding: 0 2rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  @media (max-width: 768px) {
+    .section-text h1 {
+      font-size: clamp(2rem, 10vw, 3rem);
+      padding: 0 1.5rem;
+    }
+  }
+</style>

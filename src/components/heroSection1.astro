@@ -1,0 +1,112 @@
+---
+// Hero Section component
+---
+
+<section class="flex justify-center items-center w-full pb-3 flex-col bg-blue-500">
+    <div
+        class="flex justify-center items-center relative w-full min-h-full h-screen rounded-[25px] rounded-tr-[25px]"
+    >
+
+
+    </div>
+        <div class="absolute bottom-0 left-0 z-10 w-full">
+            <div class="w-[25px] h-[25px] -rotate-90">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#1c1c1c"
+                    ></path>
+                </svg>
+            </div>
+            <div class="flex w-full">
+                <div class="flex flex-row items-end">
+                    <!-- <div
+                        class="p-4 text-right w-[38rem] h-[12rem] bg-[#000] rounded-tr-[50px]"
+                    >
+                        <h1 class="text-7xl font-extrabold text-gray-800">
+                            Catch Phrase
+                        </h1>
+                        <h2 class="text-4xl font-bold text-gray-600">
+                            Loreum Ipsum
+                        </h2>
+                    </div> -->
+
+                    <!-- <div class="w-[25px] h-[25px] -rotate-90">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <path
+                                d="m100,0H0v100C0,44.77,44.77,0,100,0Z"
+                                fill="#000"></path>
+                        </svg>
+                    </div> -->
+                </div>
+            </div>
+            <div class="w-full h-3 bg-black"></div>
+        </div>
+        <!-- <div class="video-container"> -->
+        <div
+            class="relative w-full h-full aspect-video overflow-hidden gradient-animated"
+        >
+            <div
+                class="z-10 w-[25px] h-[25px] rotate-90 absolute top-3 right-0"
+            >
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#000"
+                    ></path>
+                </svg>
+            </div>
+            <div
+                class="z-10 w-[25px] h-[25px] rotate-180 absolute bottom-3 right-0"
+            >
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#1c1c1c"
+                    ></path>
+                </svg>
+            </div>
+            <!-- <video
+                width="100%"
+                height="100%"
+                class="absolute top-0 left-0 w-full h-full object-cover"
+                poster="/main-banner-image.jpg"
+                autoplay
+                muted
+                loop
+                playsinline
+            >
+                <source
+                    src="public/mazak zaden x aunv jain.m4v"
+                    type="video/mp4"
+                />
+
+                Your browser does not support the video tag.
+            </video> -->
+        </div>
+        <!-- Overlay -->
+        <div
+            class="absolute inset-0 flex items-center justify-center bg-black/70 text-white text-center px-4"
+        >
+            <h1 class="text-3xl font-bold">Welcome to Our Demo</h1>
+        </div>
+    </div>
+</section>
+
+<style>
+    .gradient-animated {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+        filter: blur(100px);
+        opacity: 0.8;
+    }
+
+    @keyframes gradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+</style>

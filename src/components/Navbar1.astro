@@ -1,0 +1,147 @@
+---
+// Navbar component with mobile responsiveness
+---
+
+<!-- <nav class="sticky top-0 z-50 w-[95%] h-[5rem] bg-white flex flex-direction-row">
+    <div class="h-full w-1/5 bg-[#fff]">Logo</div>
+    <div class="h-full flex-1 bg-[#d5d5d5]">NavBar</div>
+</nav> -->
+<nav class="fixed w-[98%] h-[5rem] z-20 top-0">
+    <div class="h-3 bg-[#1c1c1c] w-full"></div>
+    <div class="w-full h-full flex flex-row bg-transparent">
+      <div class="min-w-[18rem] shrink-0 h-full flex flex-col">
+        <div class="flex w-full h-full flex-row">
+          <div
+            class="relative h-full w-[70%] bg-[#1c1c1c] flex justify-end items-center"
+          >
+            <h1
+              class="absolute text-[#fff] top-2 left-1 text-3xl font-bold tracking-wider"
+            >
+              01byte10
+            </h1>
+          </div>
+          <div class="h-full flex-1 flex items-end bg-[#1c1c1c] rounded-br-[25px]">
+            <div class="w-[25px] h-[25px] rotate-180">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="transparent"
+                ></path>
+              </svg>
+            </div>
+          </div>
+  
+          <div class="h-full w-[25px] flex items-start bg-transparent">
+            <div class="w-[25px] h-[25px] rotate-0">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#1c1c1c"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+  
+        <div class="full">
+          <div class="h-full w-full flex items-start bg-transparent">
+            <div class="w-[25px] h-[25px] rotate-0">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#1c1c1c"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <div class="h-full flex-auto">
+        <div class="w-full h-fit flex flex-row justify-between items-center">
+          <div class="relative w-full h-full flex justify-center items-center">
+            <div
+              class="absolute -left-1 top-3 h-fit max-w-[40rem] bg-gray-100/10 backdrop-blur-sm rounded-3xl flex justify-center items-center gap-4 py-1 px-4"
+            >
+              <span class="text-gray-300 text-[0.75rem] hover:text-gray-100 cursor-pointer">Videos</span>
+              <span class="text-gray-600 text-[0.75rem] ">|</span>
+              <span class="text-gray-300 text-[0.75rem] hover:text-gray-100 cursor-pointer">Photos</span>
+              <span class="text-gray-600 text-[0.75rem] ">|</span>
+              <span class="text-gray-300 text-[0.75rem] hover:text-gray-100 cursor-pointer">Case Studies</span>
+              <span class="text-gray-600 text-[0.75rem] ">|</span>
+              <span class="text-gray-300 text-[0.75rem] hover:text-gray-100 cursor-pointer">About Me</span>
+              <span class="text-gray-600 text-[0.75rem] ">|</span>
+              <span class="text-gray-300 text-[0.75rem] hover:text-gray-100 cursor-pointer">Contact</span>
+            </div>
+          </div>
+  
+
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+            <!-- right side curve -->
+          <!-- <div class="h-full w-fit flex items-start bg-transaprent">
+            <div class="w-[50px] h-[50px] rotate-90">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#000"></path>
+              </svg>
+            </div>
+          </div> -->
+
+  <!-- <script>
+    // Mobile menu toggle functionality
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+  
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', () => {
+        const isHidden = mobileMenu.classList.contains('hidden');
+        
+        if (isHidden) {
+          mobileMenu.classList.remove('hidden');
+          mobileMenu.classList.add('animate-fadeIn');
+        } else {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('animate-fadeIn');
+        }
+      });
+  
+      // Close mobile menu when clicking on a link
+      const mobileLinks = mobileMenu.querySelectorAll('a');
+      mobileLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('animate-fadeIn');
+        });
+      });
+  
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', (event) => {
+        const target = event.target as Node;
+        if (!mobileMenuButton.contains(target) && !mobileMenu.contains(target)) {
+          mobileMenu.classList.add('hidden');
+          mobileMenu.classList.remove('animate-fadeIn');
+        }
+      });
+    }
+  </script> -->
+  
+  <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  
+    .animate-fadeIn {
+      animation: fadeIn 0.2s ease-out;
+    }
+  </style>
+  
+  <!-- <div class="h-full w-full flex items-start">
+    <div class="w-[50px] h-[50px] rotate-0">
+      <svg viewBox="0 0 100 100" class="w-full h-full">
+        <path d="m100,0H0v100C0,44.77,44.77,0,100,0Z" fill="#dbeaff"></path>
+      </svg>
+    </div>
+  </div> -->
+  

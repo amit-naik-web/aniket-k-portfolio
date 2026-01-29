@@ -1,0 +1,109 @@
+Gallery page for concerts, event or artist
+https://codepen.io/filipz/pen/dPPyJZX - PAGE
+
+Smiley animation 
+https://codepen.io/pasaribu/pen/VvVebO  -- SMALL ICON
+
+
+Scroll Highlight on Text 
+https://codepen.io/Juxtopposed/pen/mdQaNbG - HOME PAGE SECTION
+
+
+Ribbon Crossing the page horizontally
+https://codepen.io/Davidek776/pen/abRpoGw  -- Section Seperator
+
+Circular items
+https://codepen.io/GreenSock/pen/xbwPpBR - Circular carasoul 
+
+
+Anirban 
+https://codepen.io/GreenSock/pen/PwPOdwm - new item (wheel item will highlight based on scroll position
+
+https://codepen.io/GreenSock/pen/XJmKqwX - counter number on scroll
+
+
+https://codepen.io/GreenSock/pen/WbvBwRQ
+_ funky
+
+
+https://gsap.com/community/forums/topic/23529-infinite-canvas-effect-with-gsap/
+infinite loading slider for testimonials
+
+https://bridgelanding.qodeinteractive.com/tour/
+
+
+https://codepen.io/tag/circles?cursor=ZD0xJm89MCZwPTg= - section transition
+
+
+https://codepen.io/sumit011/pen/jEPWGXE
+
+https://codepen.io/msharma14/pen/bNGBaGE -- unique semi circle items on scroll
+
+
+https://reactbits.dev/animations/metallic-paint - for logo
+
+https://reactbits.dev/components/fluid-glass
+
+https://nft.fluffyhugs.io/
+
+https://github.com/AlirezaAzizi145/react-infinite-gallery?tab=readme-ov-file
+
+https://github.com/bizarro/infinite-webl-gallery
+
+https://codrops.com/Tutorials/InfiniteAutoScrollingGallery/
+
+https://tympanus.net/codrops/2021/01/05/creating-an-infinite-auto-scrolling-gallery-using-webgl-with-ogl-and-glsl-shaders/
+
+https://www.footer.design/
+
+https://reactbits.dev/backgrounds/galaxy - background
+
+https://gsap.com/community/forums/topic/33472-gsap-horizontal-scroll/ - section horizontally scroll then vertical scoll
+
+
+https://stackblitz.com/edit/vitejs-vite-auctqy?file=src%2FApp.jsx - auto scroll
+
+https://props.studiolumio.com/
+
+
+      const modelPositions = [
+        {
+          cameraOrbit: "0deg 75deg 30m",      // Front view
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "60deg 75deg 30m",     // Rotate right 60°
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "120deg 75deg 30m",    // Rotate right 120°
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "180deg 75deg 30m",    // Back view (180°)
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "240deg 75deg 30m",    // Rotate right 240°
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "300deg 75deg 30m",    // Rotate right 300°
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "360deg 75deg 30m",    // Complete 360° rotation
+          fieldOfView: "45deg"
+        }
+      ];
+
+https://www.ciridae.com/
+
+https://www.breakthroughenergy.org/
+
+https://fiddle.digital/
+
+https://codepen.io/thebabydino/pen/XJrYqGb
+
+
+https://lenis.darkroom.engineering/showcase

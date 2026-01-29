@@ -1,0 +1,403 @@
+---
+import { testimonials } from '../data/testimonials';
+---
+
+<section class="review-section">
+  <div class="testimonials-wrapper">
+    <h2 class="section-title">About my Work</h2>
+    <div class="sliders-container">
+      <div class="container" id="scroll-container-1">
+        {[...testimonials, ...testimonials].map((testimonial, index) => (
+          <div class="testimonial-card" data-id={`${testimonial.id}-${index}`}>
+            {/* <div class="quotes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 9 7.558V11a1 1 0 0 0 1 1h2Zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612c0-.351.021-.703.062-1.054.062-.372.166-.703.31-.992.145-.29.331-.517.559-.683.227-.186.516-.279.868-.279V3c-.579 0-1.085.124-1.52.372a3.322 3.322 0 0 0-1.085.992 4.92 4.92 0 0 0-.62 1.458A7.712 7.712 0 0 0 3 7.558V11a1 1 0 0 0 1 1h2Z"/>
+              </svg>
+            </div> */}
+            <div class="card-body">
+              <p class="card-text">{testimonial.text}</p>
+              <div class="author-info">
+                {testimonial.image && (
+                  <img src={testimonial.image} alt={testimonial.name} class="author-image" />
+                )}
+                <div class="author-details">
+                  <h5 class="author-name">{testimonial.name}</h5>
+                  <span class="author-role">{testimonial.role}, {testimonial.company}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div class="container" id="scroll-container-2">
+        {[...testimonials, ...testimonials].map((testimonial, index) => (
+          <div class="testimonial-card testimonial-card-reverse" data-id={`${testimonial.id}-${index}-reverse`}>
+            <div class="card-body">
+              <p class="card-text">{testimonial.text}</p>
+              <div class="author-info">
+                {testimonial.image && (
+                  <img src={testimonial.image} alt={testimonial.name} class="author-image" />
+                )}
+                <div class="author-details">
+                  <h5 class="author-name">{testimonial.name}</h5>
+                  <span class="author-role">{testimonial.role}, {testimonial.company}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .review-section {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #1c1c1c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .testimonials-wrapper {
+    width: 100%;
+    max-width: 92%;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+    /* text-transform: uppercase; */
+  }
+
+  .sliders-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+    overflow: hidden;
+    /* Prevent text selection during animation */
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+  }
+
+  /* Fade effect on left side */
+  .sliders-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      #1c1c1c 0%,
+      rgba(28, 28, 28, 0.95) 15%,
+      rgba(28, 28, 28, 0.8) 30%,
+      rgba(28, 28, 28, 0.6) 50%,
+      rgba(28, 28, 28, 0.3) 70%,
+      rgba(28, 28, 28, 0.1) 85%,
+      transparent 100%
+    );
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Fade effect on right side */
+  .sliders-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100%;
+    background: linear-gradient(
+      to left,
+      #1c1c1c 0%,
+      rgba(28, 28, 28, 0.95) 15%,
+      rgba(28, 28, 28, 0.8) 30%,
+      rgba(28, 28, 28, 0.6) 50%,
+      rgba(28, 28, 28, 0.3) 70%,
+      rgba(28, 28, 28, 0.1) 85%,
+      transparent 100%
+    );
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .container {
+    display: flex;
+    gap: 2rem;
+    padding: 0 1.5rem;
+    align-items: flex-start;
+    /* Performance optimizations */
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .testimonial-card {
+    flex-shrink: 0;
+    width: 420px;
+    height: 150px;
+    background: #474343;
+    /* background: linear-gradient(135deg, #2a2626 0%, #717171 100%); */
+    /* background: #fff; */
+    border: 2px solid #000000/80;
+    border-radius: 15px;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Performance optimizations */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .testimonial-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 2;
+  }
+
+  .quotes {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    color: rgba(0, 0, 0, 0.15);
+  }
+
+  .quotes svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .card-body {
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .card-text {
+    color: #fff;
+    font-size: 0.9rem;
+    margin: 0;
+    flex: 1;
+    /* Text rendering optimization */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .author-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    /* padding-top: 1rem; */
+  }
+
+  .author-image {
+    width: 40px;
+    height: 40px;
+    max-height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: #f0f0f0;
+    /* GPU acceleration for images */
+    transform: translateZ(0);
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  .author-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .author-name {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .author-role {
+    color: #fff;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .testimonial-card {
+      width: 340px;
+      height: 220px;
+    }
+
+    .quotes svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .card-text {
+      font-size: 0.95rem;
+    }
+
+    .author-image {
+      width: 60px;
+      height: 60px;
+    }
+
+    .container {
+      gap: 1.5rem;
+      padding: 0 1rem;
+    }
+
+    /* Adjust fade width for mobile */
+    .sliders-container::before,
+    .sliders-container::after {
+      width: 120px;
+    }
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { Observer } from 'gsap/dist/Observer';
+  import horizontalLoop from '../helpers/horizontalLoop';
+
+  // Register GSAP plugins
+  gsap.registerPlugin(Observer);
+
+  // Wait for DOM and fonts to load
+  document.addEventListener('DOMContentLoaded', () => {
+    const speed = 2.5;
+    
+    // Longer delay to ensure proper layout calculation with new card design
+    setTimeout(() => {
+      document.fonts.ready.then(() => {
+        const container1 = document.querySelector('#scroll-container-1');
+        const container2 = document.querySelector('#scroll-container-2');
+        
+        if (!container1 || !container2) {
+          console.warn('Scroll containers not found');
+          return;
+        }
+
+        const cards1 = container1.querySelectorAll('.testimonial-card');
+        const cards2 = container2.querySelectorAll('.testimonial-card-reverse');
+        
+        // Ensure cards are visible before initializing animation
+        if (cards1.length === 0 || cards2.length === 0) {
+          console.warn('No testimonial cards found');
+          return;
+        }
+
+        // Create the horizontal loop animation for first row (moving left/right to left)
+        const loop1 = horizontalLoop('#scroll-container-1 .testimonial-card', {
+          repeat: -1,
+          speed: 1,
+          paddingRight: 32,
+          paused: false,
+          snap: false,
+          reversed: true,
+        });
+
+        // Create the horizontal loop animation for second row (moving right/left to right)
+        const loop2 = horizontalLoop('#scroll-container-2 .testimonial-card-reverse', {
+          repeat: -1,
+          speed: 1,
+          paddingRight: 32,
+          paused: false,
+          snap: false,
+          reversed: false,
+        });
+
+        let resetTimeout: number | null = null;
+        let currentSpeed = 1;
+
+        // Create observer for scroll wheel interactions - speed based on scroll velocity
+        Observer.create({
+          target: window,
+          type: 'wheel',
+          tolerance: 10,
+          onChangeY: (self) => {
+            // Clear the reset timeout
+            if (resetTimeout) clearTimeout(resetTimeout);
+            
+            // Calculate speed based on scroll velocity with smooth scaling
+            const scrollVelocity = Math.abs(self.deltaY);
+            const calculatedSpeed = Math.min(scrollVelocity / 25, 4); // Cap at 4x speed
+            const targetSpeed = Math.max(calculatedSpeed, 1.5); // Minimum 1.5x speed
+            
+            // Only update if speed changed significantly to avoid micro-adjustments
+            if (Math.abs(targetSpeed - currentSpeed) > 0.1) {
+              currentSpeed = targetSpeed;
+              
+              // Smooth speed transition
+              // Loop1 stays moving left (negative), Loop2 stays moving right (positive)
+              gsap.to(loop1, { 
+                timeScale: -targetSpeed,
+                duration: 0.4,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+              
+              gsap.to(loop2, { 
+                timeScale: targetSpeed,
+                duration: 0.4,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+            }
+            
+            // Wait for scrolling to stop before returning to normal speed
+            resetTimeout = window.setTimeout(() => {
+              currentSpeed = 1;
+              // Return to normal speed after scrolling stops with smooth deceleration
+              gsap.to(loop1, { 
+                timeScale: -1,
+                duration: 1.2,
+                ease: 'power3.out',
+                overwrite: 'auto'
+              });
+              
+              gsap.to(loop2, { 
+                timeScale: 1,
+                duration: 1.2,
+                ease: 'power3.out',
+                overwrite: 'auto'
+              });
+            }, 250); // Wait 250ms after last scroll to reset
+          },
+        });
+      });
+    }, 200);
+  });
+</script>

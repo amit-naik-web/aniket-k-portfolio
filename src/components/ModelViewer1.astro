@@ -1,0 +1,1097 @@
+---
+export interface Props {
+  modelPath: string;
+  title?: string;
+  description?: string;
+  width?: string;
+  height?: string;
+}
+
+const { 
+  modelPath, 
+  title = "3D Model", 
+  description = "Interactive 3D model",
+  width = "100%",
+  height = "100vh"
+} = Astro.props;
+---
+
+<!-- Scroll spacer: 400vh height creates scroll distance -->
+<div class="model-scroll-section" id="model-scroll-section">
+  <!-- Fixed/sticky container that stays centered -->
+  <div class="model-viewer-container">
+    <!-- Visual indicator (optional - for testing) -->
+    <div class="center-indicator"></div>
+    
+    <model-viewer
+      src={modelPath}
+      alt={title}
+      camera-controls="false"
+      touch-action="none"
+      shadow-intensity="0.3"
+      environment-image="neutral"
+      interpolation-decay="200"
+      min-camera-orbit="-Infinity -Infinity auto"
+      max-camera-orbit="Infinity Infinity Infinity"
+      min-field-of-view="10deg"
+      max-field-of-view="180deg"
+      style="width: 100%; height: 100%; background-color: #000;"
+      id="scroll-model"
+      loading="eager"
+      data-capture-mode="false"
+    >
+      <div class="progress-bar hide" slot="progress-bar">
+        <div class="update-bar"></div>
+      </div>
+    </model-viewer>
+    
+    <!-- Scroll progress indicator -->
+    <div class="scroll-progress-indicator"></div>
+  </div>
+  
+  <!-- About content overlay - appears in second half of section -->
+  <div class="about-content-container" id="about-content" style="z-index: -1; opacity: 0;">
+    <!-- Floating images on the left -->
+    <div class="floating-images-left">
+      <div class="floating-image floating-image-1" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/coldplay.jpg" alt="Coldplay" />
+      </div>
+      <div class="floating-image floating-image-2" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/bryan-adams.png" alt="Bryan Adams" />
+      </div>
+      <div class="floating-image floating-image-3" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/Fisher.jpg" alt="Fisher" />
+      </div>
+    </div>
+
+    <!-- Floating images on the right -->
+    <div class="floating-images-right">
+      <div class="floating-image floating-image-4" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/anjunadeep.jpg" alt="Anjunadeep" />
+      </div>
+      <div class="floating-image floating-image-5" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/BenBohmer.jpg" alt="Ben Bohmer" />
+      </div>
+      <div class="floating-image floating-image-6" style="--translate-y: 100vh; --scale: 0.3;">
+        <img src="/klang.jpg" alt="Klang" />
+      </div>
+    </div>
+
+    <div class="about-text">
+      <p class="text-lg md:text-3xl max-w-3xl px-8 leading-relaxed">
+        <span class="about-text-highlight" style="--highlight-progress: 0%;">A passionate visual storyteller who specializes in shooting and editing compelling content. 
+        With an eye for detail and a dedication to crafting cinematic experiences, Aniket brings 
+        stories to life through the lens and the editing suite.</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+<script>
+  // @ts-nocheck
+  
+  // Optimized model viewer with scroll-based camera animation
+  async function initModelViewer() {
+    // Wait for the model-viewer custom element to be defined
+    if (!customElements.get('model-viewer')) {
+      await customElements.whenDefined('model-viewer');  
+    }
+    
+    const modelViewer = document.getElementById('scroll-model') as any;
+    
+    if (!modelViewer) {
+      console.error('ModelViewer element not found');
+      return;
+    }
+    
+    // Disable manual camera controls
+    modelViewer.cameraControls = false;
+    
+    // Wait for model to load
+    modelViewer.addEventListener('load', () => {
+      // Define camera positions for scroll animation - Rotation only
+      const modelPositions = [
+        {
+          cameraOrbit: "0deg 75deg 35m",      // Start - Front view (0°), far
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "15deg 75deg 32m",     // Rotate 15°, zoom in slightly
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "30deg 75deg 29m",     // Rotate 30°, zoom in more
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "45deg 75deg 26m",     // Rotate 45° (halfway), closer
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "60deg 75deg 23m",     // Rotate 60°, even closer
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "75deg 75deg 21m",     // Rotate 75°, very close
+          fieldOfView: "45deg"
+        },
+        {
+          cameraOrbit: "90deg 75deg 20m",     // End - 90° rotation, closest
+          fieldOfView: "45deg"
+        }
+      ];
+      
+      let currentScrollProgress = 0;
+      let capturedPositions = [];
+      let captureMode = false;
+      let animationFrameId = null;
+      let targetScale = 0.7;
+      let currentScale = 0.7;
+      
+      // Get visual indicators
+      const centerIndicator = document.querySelector('.center-indicator');
+      const progressIndicator = document.querySelector('.scroll-progress-indicator');
+      const modelContainer = document.querySelector('.model-viewer-container');
+      
+      // Create debug overlay
+      const debugOverlay = document.createElement('div');
+      debugOverlay.id = 'model-debug-overlay';
+      debugOverlay.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #0f0;
+        padding: 15px;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 5px;
+        z-index: 10000;
+        max-width: 300px;
+        display: none;
+      `;
+      document.body.appendChild(debugOverlay);
+      
+      // Smooth camera and scale update function with interpolation
+      function updateCameraAndScale() {
+        if (!modelViewer?.loaded) {
+          return;
+        }
+        
+        // Calculate interpolation between positions
+        const positionIndex = currentScrollProgress * (modelPositions.length - 1);
+        const currentIndex = Math.floor(positionIndex);
+        const nextIndex = Math.min(currentIndex + 1, modelPositions.length - 1);
+        const t = positionIndex - currentIndex;
+        
+        const current = modelPositions[currentIndex];
+        const next = modelPositions[nextIndex];
+        
+        // Interpolate camera values
+        const interpolatedOrbit = interpolateCameraOrbit(current.cameraOrbit, next.cameraOrbit, t);
+        const interpolatedFOV = interpolateFOV(current.fieldOfView, next.fieldOfView, t);
+        
+        // Apply camera changes
+        modelViewer.cameraOrbit = interpolatedOrbit;
+        modelViewer.fieldOfView = interpolatedFOV;
+        
+        // Calculate target scale with easing (0.7 → 1 → 2)
+        // Using easeInOutCubic for smoother animation
+        const easeInOutCubic = (t) => {
+          return t < 0.5 
+            ? 4 * t * t * t 
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        };
+        
+        if (currentScrollProgress <= 0.5) {
+          // First half: scale from 0.7 to 1 (progress 0 to 0.5)
+          const normalizedProgress = currentScrollProgress * 2; // 0 to 1
+          const easedProgress = easeInOutCubic(normalizedProgress);
+          targetScale = 0.7 + (1 - 0.7) * easedProgress;
+        } else {
+          // Second half: scale from 1 to 2 (progress 0.5 to 1)
+          const normalizedProgress = (currentScrollProgress - 0.5) * 2; // 0 to 1
+          const easedProgress = easeInOutCubic(normalizedProgress);
+          targetScale = 1 + (2 - 1) * easedProgress;
+        }
+        
+        // Smooth interpolation (lerp) to target scale - matches model-viewer's smoothness
+        // Higher factor = faster response, lower = smoother
+        const lerpFactor = 0.15;
+        currentScale += (targetScale - currentScale) * lerpFactor;
+        
+        // Apply smoothly interpolated scale to the container
+        if (modelContainer) {
+          modelContainer.style.transform = `translateZ(0) scale(${currentScale})`;
+        }
+        
+        // Debug: log camera changes
+        if (window.debugScrollAnimation) {
+          console.log('Camera Update:', {
+            progress: currentScrollProgress.toFixed(3),
+            orbit: interpolatedOrbit,
+            fov: interpolatedFOV,
+            targetScale: targetScale.toFixed(3),
+            currentScale: currentScale.toFixed(3)
+          });
+        }
+        
+        // Update debug overlay
+        updateDebugOverlay();
+        
+        // Continue animation loop if scale hasn't reached target (for smooth interpolation)
+        if (Math.abs(targetScale - currentScale) > 0.001 && !captureMode) {
+          animationFrameId = requestAnimationFrame(updateCameraAndScale);
+        }
+      }
+      
+      // Update debug overlay with current position info
+      function updateDebugOverlay() {
+        const scrollPercent = (currentScrollProgress * 100).toFixed(2);
+        const scrollPixels = Math.round(window.pageYOffset || document.documentElement.scrollTop);
+        const modeColor = captureMode ? '#ff0' : '#0f0';
+        const modeStatus = captureMode ? '🎥 CAPTURE MODE ON' : '▶️ PLAYBACK MODE';
+        
+        debugOverlay.style.borderColor = modeColor;
+        debugOverlay.innerHTML = `
+          <strong style="color: ${modeColor}">${modeStatus}</strong><br>
+          <hr style="margin: 5px 0; border-color: ${modeColor};">
+          Scroll: ${scrollPercent}%<br>
+          Pixels: ${scrollPixels}px<br>
+          Target Scale: ${targetScale.toFixed(3)}<br>
+          Current Scale: ${currentScale.toFixed(3)}<br>
+          <hr style="margin: 5px 0; border-color: ${modeColor};">
+          Camera Orbit: ${modelViewer.cameraOrbit}<br>
+          Field of View: ${modelViewer.fieldOfView}<br>
+          <hr style="margin: 5px 0; border-color: ${modeColor};">
+          <small>Press 'M' to toggle capture mode<br>
+          Press 'C' to capture position<br>
+          Press 'D' to toggle debug<br>
+          Press 'P' to print captured<br>
+          Press 'X' to clear captured</small>
+        `;
+      }
+      
+      // Parse and interpolate camera orbit
+      function interpolateCameraOrbit(orbit1: string, orbit2: string, t: number) {
+        const parseOrbit = (orbit: string) => {
+          const parts = orbit.split(' ');
+          return {
+            theta: parseFloat(parts[0]),
+            phi: parseFloat(parts[1]),
+            radius: parseFloat(parts[2])
+          };
+        };
+        
+        const pos1 = parseOrbit(orbit1);
+        const pos2 = parseOrbit(orbit2);
+        
+        const theta = pos1.theta + (pos2.theta - pos1.theta) * t;
+        const phi = pos1.phi + (pos2.phi - pos1.phi) * t;
+        const radius = pos1.radius + (pos2.radius - pos1.radius) * t;
+        
+        return `${theta}deg ${phi}deg ${radius}m`;
+      }
+      
+      // Interpolate field of view
+      function interpolateFOV(fov1: string, fov2: string, t: number) {
+        const val1 = parseFloat(fov1);
+        const val2 = parseFloat(fov2);
+        const interpolated = val1 + (val2 - val1) * t;
+        return `${interpolated}deg`;
+      }
+      
+      // Capture current position
+      function capturePosition() {
+        // Warn if not in capture mode
+        if (!captureMode) {
+          console.warn('⚠️ WARNING: Not in Capture Mode! Press "M" first to enable manual camera controls.');
+        }
+        
+        const position = {
+          scrollProgress: currentScrollProgress,
+          scrollPercent: (currentScrollProgress * 100).toFixed(2) + '%',
+          scrollPixels: Math.round(window.pageYOffset || document.documentElement.scrollTop),
+          cameraOrbit: modelViewer.cameraOrbit,
+          fieldOfView: modelViewer.fieldOfView,
+          mode: captureMode ? 'CAPTURE' : 'PLAYBACK'
+        };
+        
+        capturedPositions.push(position);
+        
+        console.log(`📸 Position Captured! (${capturedPositions.length} total)`);
+        console.log('═══════════════════════════════════════');
+        console.log(`Mode: ${position.mode} ${!captureMode ? '⚠️' : '✓'}`);
+        console.log(`Scroll Progress: ${position.scrollPercent} (${position.scrollProgress.toFixed(4)})`);
+        console.log(`Scroll Pixels: ${position.scrollPixels}px`);
+        console.log(`Camera Orbit: ${position.cameraOrbit}`);
+        console.log(`Field of View: ${position.fieldOfView}`);
+        console.log('═══════════════════════════════════════\n');
+        
+        // Visual feedback
+        const feedback = document.createElement('div');
+        feedback.textContent = '📸 Position Captured!';
+        feedback.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 255, 0, 0.9);
+          color: black;
+          padding: 20px 40px;
+          font-size: 18px;
+          font-weight: bold;
+          border-radius: 10px;
+          z-index: 10001;
+          // animation: fadeOut 1s forwards;
+        `;
+        document.body.appendChild(feedback);
+        setTimeout(() => feedback.remove(), 1000);
+      }
+      
+      // Print all captured positions
+      function printCapturedPositions() {
+        if (capturedPositions.length === 0) {
+          console.log('No positions captured yet. Press "C" to capture positions.');
+          return;
+        }
+        
+        console.log('\n🎬 CAPTURED POSITIONS ARRAY');
+        console.log('═══════════════════════════════════════');
+        console.log('Copy this array to use in your code:\n');
+        console.log('const modelPositions = [');
+        capturedPositions.forEach((pos, index) => {
+          console.log(`  { // Position ${index + 1} - Scroll: ${pos.scrollPercent}`);
+          console.log(`    cameraOrbit: "${pos.cameraOrbit}",`);
+          console.log(`    fieldOfView: "${pos.fieldOfView}"`);
+          console.log(`  }${index < capturedPositions.length - 1 ? ',' : ''}`);
+        });
+        console.log('];\n');
+        console.log('═══════════════════════════════════════\n');
+        
+        // Also log as JSON for easy copying
+        console.log('JSON Format:');
+        console.log(JSON.stringify(capturedPositions, null, 2));
+      }
+      
+      // Toggle capture mode
+      function toggleCaptureMode() {
+        captureMode = !captureMode;
+        
+        if (captureMode) {
+          // Enable camera controls for manual positioning
+          modelViewer.cameraControls = true;
+          modelViewer.setAttribute('touch-action', 'pan-y');
+          
+          // Disable interpolation for immediate camera response
+          modelViewer.interpolationDecay = 0;
+          
+          // Get current camera position to prevent jumping
+          const currentOrbit = modelViewer.getCameraOrbit();
+          const currentFOV = modelViewer.getFieldOfView();
+          
+          console.log('🎥 CAPTURE MODE ENABLED');
+          console.log('═══════════════════════════════════════');
+          console.log('You can now manually control the camera:');
+          console.log('- Drag to rotate');
+          console.log('- Scroll wheel to zoom');
+          console.log('- Right-click drag to pan');
+          console.log('- Two-finger drag to pan (mobile)');
+          console.log('Scroll to different positions and press "C" to capture');
+          console.log('═══════════════════════════════════════\n');
+        } else {
+          // Disable camera controls and resume scroll animation
+          modelViewer.cameraControls = false;
+          modelViewer.setAttribute('touch-action', 'none');
+          
+          // Re-enable interpolation for smooth animation
+          modelViewer.interpolationDecay = 200;
+          
+          console.log('▶️ PLAYBACK MODE ENABLED');
+          console.log('═══════════════════════════════════════');
+          console.log('Scroll animation is now active');
+          console.log('═══════════════════════════════════════\n');
+        }
+        
+        // Show visual feedback
+        const feedback = document.createElement('div');
+        feedback.textContent = captureMode ? '🎥 Capture Mode ON' : '▶️ Playback Mode';
+        feedback.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: ${captureMode ? 'rgba(255, 255, 0, 0.9)' : 'rgba(0, 255, 0, 0.9)'};
+          color: black;
+          padding: 20px 40px;
+          font-size: 18px;
+          font-weight: bold;
+          border-radius: 10px;
+          z-index: 10001;
+          // animation: fadeOut 1s forwards;
+        `;
+        document.body.appendChild(feedback);
+        setTimeout(() => feedback.remove(), 1000);
+        
+        // Update debug overlay if visible
+        if (debugOverlay.style.display === 'block') {
+          updateDebugOverlay();
+        }
+      }
+      
+      // Clear captured positions
+      function clearCapturedPositions() {
+        capturedPositions = [];
+        console.log('🗑️ All captured positions cleared');
+        
+        // Show visual feedback
+        const feedback = document.createElement('div');
+        feedback.textContent = '🗑️ Positions Cleared';
+        feedback.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(255, 0, 0, 0.9);
+          color: white;
+          padding: 20px 40px;
+          font-size: 18px;
+          font-weight: bold;
+          border-radius: 10px;
+          z-index: 10001;
+          // animation: fadeOut 1s forwards;
+        `;
+        document.body.appendChild(feedback);
+        setTimeout(() => feedback.remove(), 1000);
+      }
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Ignore if user is typing in an input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+        
+        // Press 'M' to toggle capture mode
+        if (e.key.toLowerCase() === 'm' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          toggleCaptureMode();
+        }
+        
+        // Press 'C' to capture position
+        if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          capturePosition();
+        }
+        
+        // Press 'D' to toggle debug overlay
+        if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          debugOverlay.style.display = debugOverlay.style.display === 'none' ? 'block' : 'none';
+          if (debugOverlay.style.display === 'block') {
+            updateDebugOverlay();
+          }
+        }
+        
+        // Press 'P' to print captured positions
+        if (e.key.toLowerCase() === 'p' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          printCapturedPositions();
+        }
+        
+        // Press 'X' to clear captured positions
+        if (e.key.toLowerCase() === 'x' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          clearCapturedPositions();
+        }
+        
+        // Press 'L' to toggle scroll animation logging
+        if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          window.debugScrollAnimation = !window.debugScrollAnimation;
+          console.log(`🔍 Scroll Animation Logging: ${window.debugScrollAnimation ? 'ON' : 'OFF'}`);
+        }
+        
+        // Press 'I' to toggle visual indicators
+        if (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          if (centerIndicator) {
+            centerIndicator.style.display = centerIndicator.style.display === 'none' ? 'block' : 'none';
+          }
+          if (progressIndicator) {
+            progressIndicator.style.display = progressIndicator.style.display === 'none' ? 'block' : 'none';
+          }
+          console.log(`👁️ Visual Indicators: ${centerIndicator.style.display === 'block' ? 'ON' : 'OFF'}`);
+        }
+      });
+      
+      // Optimized scroll handler with throttling
+      function handleScroll() {
+        const scrollSection = document.getElementById('model-scroll-section');
+        if (!scrollSection) {
+          console.warn('model-scroll-section not found');
+          return;
+        }
+        
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const viewportHeight = window.innerHeight;
+        
+        // Get section's absolute position in the document
+        const sectionRect = scrollSection.getBoundingClientRect();
+        const sectionTopAbsolute = scrollTop + sectionRect.top;
+        const sectionHeight = scrollSection.offsetHeight;
+        
+        // Calculate scroll progress within the 400vh section
+        // Model animation happens in first 200vh (0 to 0.5 of section)
+        // About overlay appears in second 200vh (0.5 to 1.0 of section)
+        const scrollWithinSection = scrollTop - sectionTopAbsolute;
+        const totalScrollDistance = sectionHeight - viewportHeight;
+        
+        const sectionProgress = Math.min(Math.max(scrollWithinSection / totalScrollDistance, 0), 1);
+        
+        // Model animation completes in first half (0 to 0.5 section progress)
+        // Cap at 1.0 so model stays at final position in second half
+        const newScrollProgress = Math.min(sectionProgress * 2, 1);
+        
+        // Show/hide model container based on section visibility
+        const sectionBottom = sectionTopAbsolute + sectionHeight;
+        const isInView = scrollTop >= sectionTopAbsolute && scrollTop <= sectionBottom;
+        
+        if (modelContainer) {
+          modelContainer.style.opacity = isInView ? '1' : '0';
+          modelContainer.style.visibility = isInView ? 'visible' : 'hidden';
+        }
+        
+        // Debug logging
+        if (window.debugScrollAnimation) {
+          console.log('Scroll Debug:', {
+            scrollTop,
+            sectionTopAbsolute,
+            scrollWithinSection,
+            totalScrollDistance,
+            sectionProgress: (sectionProgress * 100).toFixed(2) + '%',
+            modelAnimProgress: (newScrollProgress * 100).toFixed(2) + '%',
+            isInView
+          });
+        }
+        
+        // Always update progress for seamless animation
+        currentScrollProgress = newScrollProgress;
+        
+        // Cancel any pending animation frame to avoid queuing
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        
+        // Update camera and scale on every scroll for seamless animation
+        if (!captureMode && isInView) {
+          animationFrameId = requestAnimationFrame(updateCameraAndScale);
+          
+          // Debug: show animation state
+          if (window.debugScrollAnimation) {
+            const animState = sectionProgress < 0.5 ? 'ANIMATING 🎬' : 'HOLDING 🎯';
+            console.log(`Model: ${animState} | Progress: ${(newScrollProgress * 100).toFixed(1)}%`);
+          }
+        }
+        
+        // Update debug overlay if visible
+        if (debugOverlay.style.display === 'block') {
+          updateDebugOverlay();
+        }
+        
+        // Update progress indicator
+        if (progressIndicator && progressIndicator.style.display === 'block') {
+          const progressPercent = (newScrollProgress * 100).toFixed(1);
+          const currentAngle = Math.round(newScrollProgress * 360);
+          progressIndicator.innerHTML = `
+            Progress: ${progressPercent}%<br>
+            Rotation: ${currentAngle}°
+          `;
+        }
+      }
+      
+      // Single optimized scroll listener
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      
+      // Update on resize
+      window.addEventListener('resize', handleScroll, { passive: true });
+      
+      // Set initial position
+      modelViewer.cameraOrbit = modelPositions[0].cameraOrbit;
+      modelViewer.fieldOfView = modelPositions[0].fieldOfView;
+      
+      // Set initial scale
+      if (modelContainer) {
+        modelContainer.style.transform = 'translateZ(0) scale(0.7)';
+      }
+      
+      // Initial setup
+      handleScroll();
+      
+      // Log controls info
+      console.log('🎮 Model Viewer Controls:');
+      console.log('═══════════════════════════════════════');
+      console.log('Press "M" - Toggle Capture/Playback Mode');
+      console.log('Press "C" - Capture current scroll/camera position');
+      console.log('Press "D" - Toggle debug overlay');
+      console.log('Press "I" - Toggle visual indicators (center + progress)');
+      console.log('Press "P" - Print all captured positions');
+      console.log('Press "X" - Clear all captured positions');
+      console.log('Press "L" - Toggle scroll animation logging');
+      console.log('═══════════════════════════════════════');
+      console.log('\n💡 WORKFLOW:');
+      console.log('1. Press "M" to enable Capture Mode');
+      console.log('2. Manually position the camera (drag, zoom)');
+      console.log('3. Scroll to different positions');
+      console.log('4. Press "C" at each position to capture');
+      console.log('5. Press "P" to export captured positions');
+      console.log('6. Press "M" to return to Playback Mode');
+      console.log('═══════════════════════════════════════\n');
+      
+      // Initialize debug flag
+      window.debugScrollAnimation = false;
+    });
+  }
+  
+  // Start initialization
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initModelViewer);
+  } else {
+    initModelViewer();
+  }
+  
+  // Handle About overlay visibility
+  function handleAboutVisibility() {
+    const modelSection = document.getElementById('model-scroll-section');
+    const aboutContent = document.getElementById('about-content');
+    
+    if (!modelSection || !aboutContent) {
+      console.error('❌ About overlay elements not found!', { modelSection, aboutContent });
+      return;
+    }
+    
+    console.log('✅ About overlay initialized', { 
+      modelSection: modelSection.id, 
+      aboutContent: aboutContent.id,
+      sectionHeight: modelSection.offsetHeight,
+      sectionTop: modelSection.offsetTop
+    });
+    
+    function updateVisibility() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const viewportHeight = window.innerHeight;
+      
+      // Get the absolute position of the section from the document top
+      const sectionTopAbsolute = modelSection.offsetTop;
+      const sectionHeight = modelSection.offsetHeight; // 400vh
+      
+      // Calculate the midpoint of the model section (200vh from start)
+      const sectionMidpoint = sectionTopAbsolute + (sectionHeight / 2);
+      const sectionBottom = sectionTopAbsolute + sectionHeight;
+      
+      // Show about content in the second half of model section (200vh to 400vh)
+      // More lenient: show when viewport starts to enter second half
+      const scrollBottom = scrollTop + viewportHeight;
+      const isInView = scrollTop >= (sectionMidpoint - viewportHeight) && scrollTop < sectionBottom;
+      
+      if (isInView) {
+        aboutContent.style.zIndex = '50';
+        aboutContent.style.opacity = '1';
+        
+        // Calculate highlight progress within the second half (0 to 1)
+        const secondHalfProgress = Math.min(Math.max((scrollTop - sectionMidpoint) / (sectionHeight / 2), 0), 1);
+        
+        // Update text highlight
+        const textHighlight = document.querySelector('.about-text-highlight');
+        if (textHighlight) {
+          // Progress from 0% to 100% width
+          const highlightPercent = secondHalfProgress * 100;
+          textHighlight.style.setProperty('--highlight-progress', `${highlightPercent}%`);
+        }
+        
+        // Animate floating images - move them from bottom to top of viewport
+        const floatingImages = document.querySelectorAll('.floating-image');
+        
+        // Define unique delays and velocities for each image (slower for premium feel)
+        const imageAnimations = [
+          { delay: 0, velocity: 0.7 },    // Image 1: Starts immediately, slow-medium
+          { delay: 0.15, velocity: 0.5 }, // Image 2: Slight delay, slower
+          { delay: 0.25, velocity: 0.9 }, // Image 3: More delay, medium
+          { delay: 0.1, velocity: 0.6 },  // Image 4: Small delay, slow
+          { delay: 0.2, velocity: 0.75 }, // Image 5: Medium delay, slow-medium
+          { delay: 0.05, velocity: 0.55 } // Image 6: Tiny delay, slower
+        ];
+        
+        floatingImages.forEach((image, index) => {
+          const config = imageAnimations[index] || { delay: 0, velocity: 1 };
+          
+          // Apply delay - image doesn't start moving until progress reaches delay point
+          const adjustedProgress = Math.min(Math.max((secondHalfProgress - config.delay) / (1 - config.delay), 0), 1);
+          
+          // Calculate position with velocity modifier
+          const startPos = 100; // Start at bottom (100vh)
+          const baseDistance = 200; // Base travel distance
+          const travelDistance = baseDistance * config.velocity;
+          
+          const translateY = startPos - (adjustedProgress * travelDistance);
+          
+          // Dramatic scaling: 0.3 → 1.2 based on adjusted progress
+          // Scale happens early in the animation (first 15% of progress)
+          let scale;
+          if (adjustedProgress < 0.15) {
+            // First 15% of animation: dramatic scale from 0.3 to 1.2
+            const scaleProgress = adjustedProgress / 0.15; // 0 to 1 over first 15%
+            scale = 0.3 + (scaleProgress * 0.9); // 0.3 → 1.2 (overshoot for drama)
+          } else if (adjustedProgress < 0.25) {
+            // Next 10%: settle back to 1.0 (elastic effect)
+            const settleProgress = (adjustedProgress - 0.15) / 0.1;
+            scale = 1.2 - (settleProgress * 0.2); // 1.2 → 1.0
+          } else {
+            // After 25%: stay at full size
+            scale = 1.0;
+          }
+          
+          image.style.setProperty('--translate-y', `${translateY}vh`);
+          image.style.setProperty('--scale', scale);
+        });
+        
+        console.log('✅ About VISIBLE', `Highlight: ${(secondHalfProgress * 100).toFixed(1)}%`);
+      } else {
+        aboutContent.style.zIndex = '-1';
+        aboutContent.style.opacity = '0';
+        
+        // Reset floating images to bottom with small scale
+        const floatingImages = document.querySelectorAll('.floating-image');
+        floatingImages.forEach((image) => {
+          image.style.setProperty('--translate-y', '100vh');
+          image.style.setProperty('--scale', '0.3');
+        });
+        
+        console.log('❌ About HIDDEN');
+      }
+    }
+    
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+    window.addEventListener('resize', updateVisibility, { passive: true });
+    
+    // Initial check
+    updateVisibility();
+    
+    // Check again after a short delay to ensure everything is loaded
+    setTimeout(updateVisibility, 100);
+  }
+  
+  // Initialize about overlay
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleAboutVisibility);
+  } else {
+    handleAboutVisibility();
+  }
+</script>
+
+<style>
+  /* Scroll section: 400vh tall to create scroll space */
+  .model-scroll-section {
+    position: relative;
+    width: 100%;
+    height: 400vh;
+    background-color: #000;
+  }
+  
+  /* Fixed container: stays locked at center of viewport while scrolling */
+  .model-viewer-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Use GPU acceleration efficiently */
+    transform: translateZ(0) scale(0.7);
+    transform-origin: center center;
+    backface-visibility: hidden;
+    z-index: 40;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    /* Smooth transitions for scale matching model-viewer's rotation interpolation */
+    transition: 
+      transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1),
+      opacity 0.3s ease, 
+      visibility 0.3s ease;
+    will-change: transform, opacity;
+  }
+  
+  /* Re-enable pointer events for the model */
+  .model-viewer-container model-viewer {
+    pointer-events: auto;
+  }
+  
+  model-viewer {
+    --poster-color: transparent;
+    --progress-bar-color: #4f46e5;
+    --progress-mask: #ffffff;
+    will-change: auto;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  
+  /* Center crosshair indicator (for testing - can be removed) */
+  .center-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 0, 0, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1000;
+    display: none; /* Hidden by default - press 'I' to toggle */
+  }
+  
+  .center-indicator::before,
+  .center-indicator::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 0, 0, 0.3);
+  }
+  
+  .center-indicator::before {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+  
+  .center-indicator::after {
+    left: 50%;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    transform: translateX(-50%);
+  }
+  
+  /* Scroll progress indicator */
+  .scroll-progress-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #0f0;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1001;
+    display: none; /* Hidden by default - updated by script */
+  }
+  
+  .progress-bar {
+    display: block;
+    width: 100%;
+    height: 10%;
+    max-height: 2%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    border-radius: 25px;
+    box-shadow: 0px 3px 10px 3px rgba(0, 0, 0, 0.5), 0px 0px 5px 1px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .progress-bar.hide {
+    visibility: hidden;
+  }
+  
+  .update-bar {
+    background-color: var(--progress-bar-color);
+    width: 0%;
+    height: 100%;
+    border-radius: 25px;
+    float: left;
+    transition: width 150ms ease;
+  }
+/* Scroll-based scale animation implemented in JavaScript:
+   First 200vh (0-50% of 400vh section):
+     0% → 25%:  scale(0.7 → 1)    - Zoom in to normal
+     25% → 50%: scale(1 → 2)       - Zoom in more
+   Second 200vh (50-100% of section):
+     Model stays at final rotation and scale(2)
+     About content appears on top
+   Uses easeInOutCubic for smooth animation */
+   
+  /* About content overlay - appears in second half */
+  .about-content-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease, z-index 0s;
+  }
+  
+  .about-text {
+    pointer-events: auto;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .about-text h2 {
+    margin-bottom: 1rem;
+  }
+  
+  /* Text highlight effect that reveals on scroll */
+  .about-text-highlight {
+    background: linear-gradient(
+      90deg,
+      #ffffff 0%,
+      #ffffff calc(var(--highlight-progress, 0%) - 1%),
+      #9ca3af calc(var(--highlight-progress, 0%)),
+      #9ca3af 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 100% 100%;
+    will-change: background;
+  }
+  
+  /* Fallback for older browsers */
+  @supports not (background-clip: text) {
+    .about-text-highlight {
+      color: #d1d5db;
+    }
+  }
+
+  /* Very subtle backdrop blur effect */
+  .about-content-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(3px);
+    z-index: -1;
+  }
+
+  /* Floating images containers */
+  .floating-images-left,
+  .floating-images-right {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .floating-images-left {
+    left: 5%;
+    top: 0;
+  }
+
+  .floating-images-right {
+    right: 5%;
+    top: 0;
+  }
+
+  /* Individual floating images with different sizes */
+  .floating-image {
+    position: relative;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    transform: translateY(var(--translate-y, 100vh)) rotate(var(--rotate, 0deg)) scale(var(--scale, 0.3));
+    transition: transform 0.15s ease-out, box-shadow 0.4s ease;
+    will-change: transform;
+    transform-origin: center center;
+  }
+
+  .floating-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Different sizes and aspect ratios for organic variety */
+  /* Left side images */
+  .floating-image-1 {
+    width: 220px;
+    height: 280px; /* Tall portrait */
+    margin-left: 60px;
+    margin-top: 80px;
+    --rotate: -5deg;
+  }
+
+  .floating-image-2 {
+    width: 280px;
+    height: 180px; /* Wide landscape */
+    margin-left: -20px;
+    margin-top: 40px;
+    --rotate: 3deg;
+  }
+
+  .floating-image-3 {
+    width: 160px;
+    height: 160px; /* Small square */
+    margin-left: 80px;
+    margin-top: 60px;
+    --rotate: -8deg;
+  }
+
+  /* Right side images */
+  .floating-image-4 {
+    width: 190px;
+    height: 250px; /* Medium portrait */
+    margin-right: 40px;
+    margin-top: 100px;
+    --rotate: 6deg;
+  }
+
+  .floating-image-5 {
+    width: 260px;
+    height: 200px; /* Landscape */
+    margin-right: -10px;
+    margin-top: 50px;
+    --rotate: -4deg;
+  }
+
+  .floating-image-6 {
+    width: 200px;
+    height: 300px; /* Tall portrait */
+    margin-right: 60px;
+    margin-top: 70px;
+    --rotate: 7deg;
+  }
+
+  /* Add subtle hover effect */
+  .floating-image:hover {
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+  }
+
+  /* Responsive - hide on smaller screens */
+  @media (max-width: 1024px) {
+    .floating-images-left,
+    .floating-images-right {
+      display: none;
+    }
+  }
+</style>
