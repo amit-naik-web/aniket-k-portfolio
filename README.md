@@ -23,13 +23,18 @@ Mobile
 --Footer 
 --Contact Form
 
+
+-- Add font system
 -- ** Add copyrights infringement rules to website for restricting copypaste of implmentations like https://www.1-placevendome.com/en/
 
 -- Add the media (photos and videos )in a very fast cdn places
 
--- Add a preloader for application to load fonts and assets beforehand
+-- Add a preloader for application to load fonts✅ and assets beforehand
 -- add a preloader for gallery page to load all the assets 
 -- add a contact form 
+
+-- how to load glb model in optimized way ✅ 
+
 
 
 

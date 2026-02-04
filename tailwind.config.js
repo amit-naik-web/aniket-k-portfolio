@@ -20,8 +20,10 @@ export default {
         },
       },
       fontFamily: {
-        artistic: ['"Pacifico"', 'cursive'],
-        sans: ['var(--font-family-sans)'],
+        sans: ['DM Sans', 'sans-serif'],              // Default
+        dmsans: ['DM Sans', 'sans-serif'],            // Explicit DM Sans
+        rem: ['REM', 'sans-serif'],                   // New: REM font
+        redhat: ['Red Hat Display', 'sans-serif'],    // New: Red Hat Display
         mono: ['var(--font-family-mono)'],
         serif: ['var(--font-family-serif)'],
       },
