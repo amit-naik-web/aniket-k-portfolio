@@ -1,0 +1,111 @@
+---
+import PhotoBall2 from '../components/PhotoBall2.astro';
+
+const collectionCards = [
+  { title: "Interview", description: "Conversations and behind-the-scenes stories." },
+  { title: "Music Videos", description: "Editorial and campaign photography highlights." },
+  { title: "Shortfilm", description: "Narrative-driven short format productions." },
+  { title: "Ads", description: "Commercial concepts crafted for audience impact." }
+];
+---
+
+<section class="collections-wrapper">
+  <div class="collections-inner">
+    <p class="collections-kicker">Collections</p>
+    <h2 class="collections-heading">Config Driven Categories</h2>
+
+    <div class="collections-grid">
+      {collectionCards.map((card) => (
+        <article class="collection-card" data-collection-card>
+          <PhotoBall2 />
+          <h3>{card.title}</h3>
+          <p>{card.description}</p>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .collections-wrapper {
+    background: #111;
+    padding: 80px 16px;
+  }
+
+  .collections-inner {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+  }
+
+  .collections-kicker {
+    color: #a3a3a3;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+  }
+
+  .collections-heading {
+    color: #f5f5f5;
+    margin: 0 0 28px 0;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+  }
+
+  .collections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .collection-card {
+    cursor: pointer;
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: linear-gradient(165deg, #1a1a1a 0%, #121212 100%);
+    border-radius: 14px;
+    padding: 20px;
+    min-height: 160px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .collection-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.35);
+  }
+
+  .collection-card h3 {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+  }
+
+  .collection-card p {
+    position: relative;
+    z-index: 2;
+    color: #bdbdbd;
+    margin: 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 960px) {
+    .collections-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .collections-wrapper {
+      padding: 56px 16px;
+    }
+
+    .collections-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
