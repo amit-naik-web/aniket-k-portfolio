@@ -20,12 +20,12 @@ Mobile
 --About Section
 --Preview Lst Showcase
 --About Work 
---Footer 
+--Footer ✅
+  -- add social icons
 --Contact Form
 
 
 -- Add font system
--- ** Add copyrights infringement rules to website for restricting copypaste of implmentations like https://www.1-placevendome.com/en/
 
 -- Add the media (photos and videos )in a very fast cdn places
 
@@ -35,10 +35,31 @@ Mobile
 
 -- how to load glb model in optimized way ✅ 
 
+https://telescope.fyi/  -- sphere image preview on cursor 
+https://katana.network/
+https://katana.network/
+https://v0.app/templates/optimus-the-ai-platform-to-build-and-ship-LHv4frpA7Us
+https://telhaclarke.com.au/
+https://www.sebastian-martinez.com/ - vertical scroll to reveal scalalable images
+
+https://wooo.studio/ - list 
+https://www.behance.net/gallery/218441413/ToBeBold-Marketing-agency-Website-design?tracking_source=project_owner_other_projects -- section names
+
+https://mad-creative-agency.com/ - cta
+https://www.awwwards.com/websites/design-agencies/
 
 
 
-
+TODO:
+-- Add CTA Section
+        ------https://www.cta.gallery/
+        https://webflow.com/made-in-webflow/website/animated-cta-collection - multiple cta designs
+-- Desgin Collections Card
+        ----- change style according to telescope.pyi
+-- Change Camera layout 
+        ----- About me text✅
+        ----- card coming from left to right✅
+        ----- Refine the animations
 
 
 

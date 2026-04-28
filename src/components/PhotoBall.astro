@@ -1,0 +1,231 @@
+---
+// PhotoBall.astro
+// Usage: <PhotoBall client:only="three" />
+// Or drop directly into any .astro page
+---
+
+<div class="photo-ball-wrapper">
+  <div id="photo-ball-mount"></div>
+  <p class="photo-ball-hint">Drag to rotate · images always face you</p>
+</div>
+
+<script>
+  // @ts-nocheck
+  import * as THREE from 'three';
+
+  const mount = document.getElementById('photo-ball-mount');
+  if (!mount) {
+    throw new Error('PhotoBall mount element not found');
+  }
+
+  const W = 480;
+  const H = 480;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0x000000, 0);
+  mount.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+  camera.position.set(0, 0, 5.2);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  scene.add(
+    new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, 24, 24),
+      new THREE.MeshBasicMaterial({
+        color: 0xaaaacc,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.05
+      })
+    )
+  );
+
+  const rotAxis = new THREE.Vector3(-1, -1, 0).normalize();
+  const imgIds = [
+    '1506905925346-21bda4d32df4', '1470071459604-3b5ec3a7fe05', '1501854140801-50d01698950b',
+    '1441974231531-c6227db76b6e', '1518020382113-a7e8fc38eac9', '1507003211169-0a1dd7228f2d',
+    '1494790108377-be9c29b29330', '1472214103451-9374bd1c798e', '1519681393784-d120267933ba',
+    '1502082553048-f009c37129b9', '1464822759023-fed622ff2c3b', '1426604966848-d7adac402bff',
+    '1500534314209-a25ddb2bd429', '1532274402911-5a369e4c4bb5', '1534430480872-3498386e7856',
+    '1540979388789-6cee28a1cdc9', '1547471080-7cc2caa01a7e', '1551632811-561732d1e306',
+    '1559827291-72416316a7b0', '1566438480900-0609be27db4c', '1574169208507-84376144848b',
+    '1578632767115-351597cf2a0d', '1580489944761-15a19d654956', '1583394838336-acd977736f90',
+    '1586348943529-beaae6c28db9', '1589394815804-964ed0be2eb5', '1590523741831-ab7e8b8f9c7f',
+    '1598300042247-d088f8ab3a91', '1601758125940-8f527e22a4ac', '1604537466158-719b1972feb8',
+    '1609921212029-bb5a28e60960', '1614851099175-e5322f1f639b', '1617957718587-13e31b39da5b',
+    '1622547748225-3fc4abd2cca0', '1625244695730-7ace6c8e8c1b', '1628191081676-24f57f57d5e6',
+    '1472396961693-142e6e269027', '1433086074074-e4f486ddfe1f', '1418065460487-3e41a6c84dc5',
+    '1439853949212-36652a89b5f6', '1445294211564-3ca59d999abd', '1448375240586-882707db888b',
+    '1453728013993-6d66e9c9123a', '1456428746267-a1756408f782', '1463003785364-5d9e3bec6807',
+    '1469474968028-56623f02e42e', '1471922694854-ff1b63b20054', '1475924156734-496f6cac6ec1',
+    '1477322524774-a39f8ec0a0c4', '1480714378702-484de788b4cc', '1482686115713-0fbcaced6e28',
+    '1484318571209-661cf29a69d8', '1488330219917-7b6eda23ef66', '1490750967868-88df5691b2e3'
+  ];
+
+  const baseW = [0.28, 0.20, 0.24, 0.30, 0.18, 0.26, 0.22, 0.30, 0.24, 0.20];
+  const baseH = [0.20, 0.26, 0.24, 0.18, 0.24, 0.20, 0.28, 0.18, 0.22, 0.26];
+  const baseSizes = imgIds.map((_, i) => ({ w: baseW[i % baseW.length], h: baseH[i % baseH.length] }));
+
+  /**
+   * @param {number} n
+   * @returns {THREE.Vector3[]}
+   */
+  function fibSphere(n) {
+    const pts = [];
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < n; i++) {
+      const y = 1 - (i / (n - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const theta = golden * i;
+      pts.push(new THREE.Vector3(r * Math.cos(theta), y, r * Math.sin(theta)));
+    }
+    return pts;
+  }
+
+  const unitPositions = fibSphere(imgIds.length);
+  const R = 1.58;
+  const loader = new THREE.TextureLoader();
+  const fallbacks = [0xe8a87c, 0x85c1e9, 0x82e0aa, 0xf1948a, 0xc39bd3, 0xf8c471, 0x7fb3d3, 0xa9cce3];
+  /** @type {Array<{card: THREE.Group, border: THREE.Mesh, photo: THREE.Mesh, baseW: number, baseH: number, unitPos: THREE.Vector3}>} */
+  const cards = [];
+  const tempVec = new THREE.Vector3();
+
+  unitPositions.forEach((pos3, i) => {
+    const s = baseSizes[i];
+    const border = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, depthWrite: false })
+    );
+    const photo = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        color: fallbacks[i % fallbacks.length],
+        side: THREE.DoubleSide,
+        depthWrite: false
+      })
+    );
+
+    loader.load(`https://images.unsplash.com/photo-${imgIds[i]}?w=160&h=160&fit=crop&auto=format`, (/** @type {THREE.Texture} */ tex) => {
+      photo.material = new THREE.MeshBasicMaterial({
+        map: tex,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+    });
+
+    const card = new THREE.Group();
+    card.add(border);
+    card.add(photo);
+    scene.add(card);
+    cards.push({ card, border, photo, baseW: s.w, baseH: s.h, unitPos: pos3.clone() });
+  });
+
+  const rotGroup = new THREE.Group();
+  scene.add(rotGroup);
+
+  let dragging = false;
+  let prevX = 0;
+  let prevY = 0;
+  const el = renderer.domElement;
+
+  el.addEventListener('mousedown', (/** @type {MouseEvent} */ e) => {
+    dragging = true;
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+
+  window.addEventListener('mouseup', () => {
+    dragging = false;
+  });
+
+  window.addEventListener('mousemove', (/** @type {MouseEvent} */ e) => {
+    if (!dragging) return;
+    rotGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), (e.clientX - prevX) * 0.007);
+    rotGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), (e.clientY - prevY) * 0.007);
+    prevX = e.clientX;
+    prevY = e.clientY;
+  });
+
+  el.addEventListener('touchstart', (/** @type {TouchEvent} */ e) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    dragging = true;
+    prevX = touch.clientX;
+    prevY = touch.clientY;
+  });
+
+  window.addEventListener('touchend', () => {
+    dragging = false;
+  });
+
+  window.addEventListener('touchmove', (/** @type {TouchEvent} */ e) => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    rotGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), (touch.clientX - prevX) * 0.007);
+    rotGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), (touch.clientY - prevY) * 0.007);
+    prevX = touch.clientX;
+    prevY = touch.clientY;
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!dragging) rotGroup.rotateOnWorldAxis(rotAxis, 0.004);
+
+    const q = rotGroup.quaternion;
+    cards.forEach(({ card, border, photo, baseW, baseH, unitPos }) => {
+      tempVec.copy(unitPos).applyQuaternion(q).multiplyScalar(R);
+      card.position.copy(tempVec);
+      card.rotation.set(0, 0, 0);
+
+      const t = (tempVec.z / R + 1) / 2;
+      const scale = 0.4 + t * 1.4;
+      const opacity = Math.max(0.2, 0.3 + t * 0.7);
+
+      border.scale.set((baseW + 0.03) * scale, (baseH + 0.03) * scale, 1);
+      photo.scale.set(baseW * scale, baseH * scale, 1);
+
+      if (photo.material) {
+        photo.material.transparent = true;
+        photo.material.opacity = opacity;
+      }
+      if (border.material) {
+        border.material.transparent = true;
+        border.material.opacity = opacity;
+      }
+    });
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+
+<style>
+  .photo-ball-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+  }
+
+  #photo-ball-mount {
+    width: 480px;
+    height: 480px;
+  }
+
+  #photo-ball-mount canvas {
+    display: block;
+  }
+
+  .photo-ball-hint {
+    font-size: 13px;
+    color: #888;
+    margin-top: 8px;
+  }
+</style>

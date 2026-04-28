@@ -105,9 +105,12 @@ const canvasSize = 220;
       const CY = H / 2;
       const FOCAL = (W / 2) / Math.tan((45 * Math.PI / 180) / 2);
       const CAM_Z = 5.2;
-      const SPHERE_R = 1.58;
-      const FADE_END = -0.15 * SPHERE_R;
-      const FADE_START = 0.15 * SPHERE_R;
+      const SPHERE_RX = 1.62;
+      const SPHERE_RY = 1.50;
+      const SPHERE_RZ = 1.62;
+      const SPHERE_SIZE = 1.55;
+      const FADE_END = -0.15 * SPHERE_RZ;
+      const FADE_START = 0.15 * SPHERE_RZ;
 
       let qRot = { w: 1, x: 0, y: 0, z: 0 };
       let currentSpeed = IDLE_SPEED;
@@ -228,18 +231,18 @@ const canvasSize = 220;
 
         const items = unitPts.map((p, i) => {
           const rp = applyQ(qRot, p);
-          const wz = rp[2] * SPHERE_R;
+          const wz = rp[2] * SPHERE_RZ;
           const camZ = CAM_Z - wz;
           const s = FOCAL / camZ;
-          const sx = CX + rp[0] * SPHERE_R * s;
-          const sy = CY + rp[1] * SPHERE_R * s;
-          const t = (wz / SPHERE_R + 1) / 2;
+          const sx = CX + rp[0] * SPHERE_RX * s;
+          const sy = CY + rp[1] * SPHERE_RY * s;
+          const t = (wz / SPHERE_RZ + 1) / 2;
           const sizeScale = 0.12 + Math.pow(t, 2.2);
           const fadeT = Math.min(1, (wz - FADE_END) / (FADE_START - FADE_END));
           const opacity = fadeT * (0.2 + Math.pow(t, 1.8) * 0.8);
           const { bw, bh } = imgs[i];
-          const pw = bw * SPHERE_R * s * sizeScale;
-          const ph = bh * SPHERE_R * s * sizeScale;
+          const pw = bw * SPHERE_SIZE * s * sizeScale;
+          const ph = bh * SPHERE_SIZE * s * sizeScale;
           return { i, sx, sy, wz, opacity, pw, ph, s, sizeScale };
         });
 
@@ -248,7 +251,8 @@ const canvasSize = 220;
         for (const { i, sx, sy, wz, opacity, pw, ph, s, sizeScale } of items) {
           if (wz < FADE_END || opacity < 0.01) continue;
           const { el } = imgs[i];
-          const bpad = 0.01 * SPHERE_R * s * sizeScale;
+          const bpad = 0.0 * SPHERE_SIZE * s * sizeScale;
+          // add padding to images
 
           ctx.save();
           ctx.globalAlpha = opacity;

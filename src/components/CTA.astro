@@ -1,0 +1,190 @@
+<section class="cta-scroll" data-cta-section>
+  <div class="cta-sticky">
+    <div class="cta-frame" data-cta-frame>
+      <span class="cta-bracket cta-bracket-left" aria-hidden="true">
+        <svg
+          width="50"
+          height="140"
+          viewBox="0 0 50 140"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect x="0" y="0" width="20" height="140" rx="2" fill="#fff"></rect>
+          <rect x="0" y="0" width="50" height="20" rx="2" fill="#fff"></rect>
+          <rect x="0" y="120" width="50" height="20" rx="2" fill="#fff"></rect>
+        </svg>
+      </span>
+      <!-- <h2 class="cta-title">LET&apos;S BUILD SOMETHING ICONIC</h2> -->
+      <span class="cta-bracket cta-bracket-right" aria-hidden="true">
+        <svg
+          width="50"
+          height="140"
+          viewBox="0 0 50 140"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect x="30" y="0" width="20" height="140" rx="2" fill="#fff"></rect>
+          <rect x="0" y="0" width="50" height="20" rx="2" fill="#fff"></rect>
+          <rect x="0" y="120" width="50" height="20" rx="2" fill="#fff"></rect>
+        </svg>
+      </span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-scroll {
+    --cta-progress: 0;
+    --split-progress: 0;
+    --reveal-progress: clamp(0, calc((var(--cta-progress) - 0.22) / 0.78), 1);
+    --title-y: calc((1 - var(--cta-progress)) * 10vh);
+    --title-scale: calc(0.62 + var(--cta-progress) * 0.5);
+    --title-opacity: var(--reveal-progress);
+    --title-clip: calc((1 - var(--reveal-progress)) * 50%);
+    --title-spacing: calc(0.02em + var(--cta-progress) * 0.08em);
+    --bracket-base-offset: 0rem;
+    --bracket-shift: calc(var(--bracket-base-offset) + var(--split-progress) * 28vw);
+    --bracket-scale: calc(0.8 + var(--cta-progress) * 0.8);
+    --bracket-opacity: calc(0.22 + var(--cta-progress) * 0.78);
+    position: relative;
+    min-height: 220vh;
+    width: 80%;
+    overflow: clip;
+  }
+
+  .cta-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: grid;
+    place-items: end center;
+    padding-inline: 4vw;
+  }
+
+  .cta-frame {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    transform: translateY(calc(-50vh + var(--title-y))) scale(var(--title-scale));
+    transition: transform 0.1s linear;
+    will-change: transform;
+  }
+
+  .cta-title {
+    margin: 0;
+    text-align: center;
+    font-size: 2.1rem;
+    line-height: 0.95;
+    letter-spacing: var(--title-spacing);
+    color: #f7f7f7;
+    opacity: var(--title-opacity);
+    clip-path: inset(0 var(--title-clip) 0 var(--title-clip));
+    text-transform: uppercase;
+    width: min(50%, 14ch);
+    text-wrap: balance;
+    will-change: clip-path, opacity;
+  }
+
+  .cta-bracket {
+    width: 2rem;
+    height: 2rem;
+    max-height: 4.2rem;
+    max-weight: 4.2rem;
+    display: inline-grid;
+    place-items: center;
+    color: #ffffff;
+    opacity: var(--bracket-opacity);
+    transform-origin: center;
+    transition: transform 0.1s linear;
+    will-change: transform;
+  }
+
+  .cta-bracket svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  .cta-bracket rect {
+    fill: #ffffff !important;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.35));
+  }
+
+  .cta-bracket-left {
+    transform: translateX(calc(-1 * var(--bracket-shift)))
+      scale(var(--bracket-scale));
+  }
+
+  .cta-bracket-right {
+    transform: translateX(var(--bracket-shift)) scale(var(--bracket-scale));
+  }
+
+  @media (max-width: 900px) {
+    .cta-scroll {
+      --bracket-base-offset: 0rem;
+      --bracket-shift: calc(var(--bracket-base-offset) + var(--split-progress) * 26vw);
+    }
+
+    .cta-frame {
+      gap: 0.55rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-scroll {
+      --cta-progress: 1;
+    }
+
+    .cta-frame,
+    .cta-bracket {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const ctaSection = document.querySelector("[data-cta-section]");
+  const ctaFrame = ctaSection?.querySelector("[data-cta-frame]");
+
+  if (ctaSection instanceof HTMLElement && ctaFrame instanceof HTMLElement) {
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    let isTicking = false;
+
+    const updateCTA = () => {
+      const rect = ctaSection.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+
+      // Start only when CTA enters viewport from bottom, then complete by 35vh.
+      const startY = vh * 1.0;
+      const triggerY = vh * 0.45;
+      const raw = (startY - rect.top) / (startY - triggerY);
+      const progress = easeOutCubic(clamp(raw, 0, 1));
+
+      // Keep brackets attached until section reaches 30vh, then split outward.
+      const splitStartY = vh * 0.3;
+      const splitEndY = vh * -0.15;
+      const splitRaw = (splitStartY - rect.top) / (splitStartY - splitEndY);
+      const splitProgress = easeOutCubic(clamp(splitRaw, 0, 1));
+
+      ctaSection.style.setProperty("--cta-progress", progress.toFixed(4));
+      ctaSection.style.setProperty(
+        "--split-progress",
+        splitProgress.toFixed(4),
+      );
+      isTicking = false;
+    };
+
+    const requestUpdate = () => {
+      if (isTicking) return;
+      isTicking = true;
+      window.requestAnimationFrame(updateCTA);
+    };
+
+    requestUpdate();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+  }
+</script>

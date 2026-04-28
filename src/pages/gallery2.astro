@@ -31,6 +31,60 @@ import Layout from '../layouts/Layout.astro';
     <div class="page-vignette-extreme"></div>
   </div>
 
+  <!-- Simple static grid for narrow viewports (canvas stays min-width 769px) -->
+  <div class="mobile-gallery" id="mobileGallery">
+    <article class="mobile-gallery-card">
+      <img src="/Fisher.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Fisher's Journey</h2>
+      <p class="mobile-gallery-desc">« Deep house waves meets visual storytelling »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/anjunadeep.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Anjunadeep Waves</h2>
+      <p class="mobile-gallery-desc">« Progressive melodies in motion »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/coldplay.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Coldplay Dreams</h2>
+      <p class="mobile-gallery-desc">« Ethereal concert experience captured »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/bryan-adams.png" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Bryan Adams Classic</h2>
+      <p class="mobile-gallery-desc">« Rock legend in timeless frames »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/klang.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Klang Universe</h2>
+      <p class="mobile-gallery-desc">« Electronic soundscapes visualized »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/klang-preview.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Klang Preview One</h2>
+      <p class="mobile-gallery-desc">« First glimpse into sonic dimensions »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/klang-preview-2.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Klang Preview Two</h2>
+      <p class="mobile-gallery-desc">« Rhythmic patterns emerge »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/klang-preview-3.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Klang Preview Three</h2>
+      <p class="mobile-gallery-desc">« Final chapter of the trilogy »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/BenBohmer.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Ben Böhmer Session</h2>
+      <p class="mobile-gallery-desc">« Melodic techno atmosphere »</p>
+    </article>
+    <article class="mobile-gallery-card">
+      <img src="/main-banner-image.jpg" alt="" width="800" height="600" loading="lazy" decoding="async" />
+      <h2 class="mobile-gallery-title">Main Banner Project</h2>
+      <p class="mobile-gallery-desc">« Hero visual statement piece »</p>
+    </article>
+  </div>
+
   <!-- Footer -->
   <div class="footer">
     <div class="coordinates-section">
@@ -454,6 +508,29 @@ import Layout from '../layouts/Layout.astro';
     text-transform: uppercase;
   }
 
+  /* Mobile static grid — hidden on desktop (canvas gallery) */
+  .mobile-gallery {
+    display: none;
+  }
+
+  .mobile-gallery-title {
+    font-family: "PP Neue Montreal", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 10px 0 4px;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .mobile-gallery-desc {
+    font-size: 11px;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+    margin: 0;
+  }
+
   /* Performance Optimizations */
   * {
     -webkit-font-smoothing: antialiased;
@@ -485,12 +562,59 @@ import Layout from '../layouts/Layout.astro';
   }
 
   @media (max-width: 768px) {
+    body {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .canvas-container,
+    .overlay,
+    .project-title,
+    .custom-cursor,
+    .scroll-hint,
+    .loading-indicator {
+      display: none !important;
+    }
+
+    .mobile-gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 12px;
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 100vw;
+      padding: 20px 12px 8px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .mobile-gallery-card {
+      min-width: 0;
+    }
+
+    .mobile-gallery-card img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .key-hint {
+      display: none;
+    }
+
     body::before {
       background-size: 150px 150px;
       opacity: 0.2;
     }
 
     .footer {
+      position: relative;
+      bottom: auto;
+      left: auto;
+      width: 100%;
       padding: 12px;
       grid-template-columns: 1fr 1fr;
       row-gap: 12px;
@@ -535,6 +659,26 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script>
+  const desktopGalleryMq = window.matchMedia("(min-width: 769px)");
+  desktopGalleryMq.addEventListener("change", () => {
+    location.reload();
+  });
+
+  function dismissLoadingAndScrollHint() {
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    if (loadingIndicator) {
+      loadingIndicator.classList.add("hidden");
+      setTimeout(() => {
+        if (loadingIndicator.parentNode) loadingIndicator.remove();
+      }, 500);
+    }
+    const scrollHint = document.getElementById("scrollHint");
+    if (scrollHint) scrollHint.remove();
+  }
+
+  if (!desktopGalleryMq.matches) {
+    dismissLoadingAndScrollHint();
+  } else {
   // @ts-ignore - External ESM imports
   import("https://esm.sh/gsap").then(({ default: gsap }) => {
     // @ts-ignore
@@ -1488,5 +1632,6 @@ import Layout from '../layouts/Layout.astro';
       });
     });
   });
+  }
 </script>
 </Layout>

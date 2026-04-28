@@ -17,6 +17,7 @@ const collectionCards = [
     <div class="collections-grid">
       {collectionCards.map((card) => (
         <article class="collection-card" data-collection-card>
+          <span class="collection-cursor" aria-hidden="true"></span>
           <PhotoBall2 />
           <h3>{card.title}</h3>
           <p>{card.description}</p>
@@ -25,6 +26,39 @@ const collectionCards = [
     </div>
   </div>
 </section>
+
+<script>
+  (() => {
+    const cards = document.querySelectorAll('[data-collection-card]:not([data-cursor-ready])');
+    if (!cards.length) return;
+
+    cards.forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      const card = node;
+      card.setAttribute('data-cursor-ready', 'true');
+      const cursor = card.querySelector('.collection-cursor');
+      if (!cursor) return;
+
+      const updateCursor = (event: MouseEvent) => {
+        const rect = card.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        card.style.setProperty('--cursor-x', `${x}px`);
+        card.style.setProperty('--cursor-y', `${y}px`);
+      };
+
+      card.addEventListener('mouseenter', (event: MouseEvent) => {
+        updateCursor(event);
+        card.classList.add('is-cursor-active');
+      });
+
+      card.addEventListener('mousemove', updateCursor);
+      card.addEventListener('mouseleave', () => {
+        card.classList.remove('is-cursor-active');
+      });
+    });
+  })();
+</script>
 
 <style>
   .collections-wrapper {
@@ -60,6 +94,7 @@ const collectionCards = [
   .collection-card {
     cursor: pointer;
     position: relative;
+    z-index: 0;
     isolation: isolate;
     overflow: visible;
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -68,12 +103,20 @@ const collectionCards = [
     padding: 20px;
     min-height: 160px;
     transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    --cursor-x: 50%;
+    --cursor-y: 50%;
   }
 
   .collection-card:hover {
+    cursor: none;
     transform: translateY(-4px);
+    z-index: 30;
     border-color: rgba(255, 255, 255, 0.35);
     box-shadow: 0 16px 38px rgba(0, 0, 0, 0.35);
+  }
+
+  .collection-card:focus-within {
+    z-index: 30;
   }
 
   .collection-card h3 {
@@ -91,6 +134,28 @@ const collectionCards = [
     margin: 0;
     line-height: 1.5;
     font-size: 0.95rem;
+  }
+
+  .collection-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transform: translate(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%)) scale(0.85);
+    background: rgba(182, 182, 182, 0.589);
+    /* border: 1px solid rgba(230, 230, 230, 0.55); */
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    backdrop-filter: blur(1px);
+  }
+
+  .collection-card.is-cursor-active .collection-cursor {
+    opacity: 1;
+    transform: translate(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%)) scale(1);
   }
 
   @media (max-width: 960px) {
