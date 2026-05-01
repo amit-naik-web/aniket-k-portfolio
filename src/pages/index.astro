@@ -3,16 +3,17 @@ import Layout from "../layouts/Layout.astro";
 import "../styles/global.css";
 // import HeroSection from "../components/heroSection.astro";
 // import LatestWorkShowCase from "../components/latestWorkShowCase.astro";
-import PreviewListShowCase from "../components/previewListShowCase.astro";
+import PreviewListShowCase from "../components/previewListShowCase2.astro";
 import ReviewSection from "../components/reviewSection.astro";
-import ModelViewer1 from "../components/ModelViewer1.astro";
+// import ModelViewer1 from "../components/ModelViewer1.astro";
+import ModelViewer2 from "../components/ModelViewer2.astro";
 import Hero3 from "../components/hero3.astro";
-
+import CTA from "../components/CTA.astro";
 ---
 
 <Layout title="01byte10">
   <!-- Hero Section -->
-  <video
+  <!-- <video
     class="w-full h-[100vh] object-cover"
     src="/korolova.mp41"
     autoplay
@@ -22,43 +23,47 @@ import Hero3 from "../components/hero3.astro";
   >
     Your browser does not support the video tag.
   </video>
-  <Hero3 />
-  <!-- <HeroSection1 /> -->
+  <Hero3 /> -->
 
-  <div class="h-[100vh] w-full"></div>
+  <!-- <div class="h-[100vh] w-full"></div> -->
   <!-- CLients ribbon -->
   <!-- public/clients -->
 
-  <!-- ABout Us section -->
+  <!-- ABout Us Section -->
   <!-- https://codepen.io/msharma14/pen/bNGBaGE -->
 
   <!-- 3D Model Showcase Section with About Overlay -->
-  <ModelViewer1
+  <!-- <ModelViewer1
     modelPath="/models/source.glb"
     width="100vw"
     height="100vh"
-  />
-
+  /> -->
+  <!-- <ModelViewer2
+    modelPath="/models/source.glb"
+    width="100vw"
+    height="100vh"
+  /> -->
   <!-- <Works1 /> -->
   <!-- Latest Work/Feature Section -->
   <!-- <LatestWorkShowCase /> -->
 
   <!-- <div class="h-[30vh] w-full"></div> -->
-  <!-- Preview List Section -->
 
+
+  <!-- Preview List Section -->
   <div class="h-[100vh] w-full"></div>
   <PreviewListShowCase />
-
-  <!-- Glass Preview Section -->
-  <!-- <GlassPreviewSection client:load /> -->
 
   <!-- Scroll Animation Section - Middle div grows with background shift -->
   <!-- <ScrollAnimationSection /> -->
 
   <!-- Split Screen Overlay - Zoom out effect revealing background -->
   <!-- <SplitScreenOverlay /> -->
+   
   <!-- Review Section -->
   <ReviewSection />
+  <!-- <div class="h-[40vh] w-full"></div>
+  <CTA /> -->
 </Layout>
 
 <style>

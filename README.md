@@ -51,17 +51,39 @@ https://www.awwwards.com/websites/design-agencies/
 
 
 TODO:
+-- Add Infographics somewhere like
+        ------ number of projects
+        ------ years of experience
+        ------ client
+
+-- Add Company logos in rectangle grid just below hero whose grid fades at the corner
 -- Add CTA Section
-        ------https://www.cta.gallery/
-        https://webflow.com/made-in-webflow/website/animated-cta-collection - multiple cta designs
+        ------ Design ✅
+        ------ Content 
+        ------ Form 
+        ------ add authentic cricular text with dot spepearted with a genunility logo at center 
 -- Desgin Collections Card
-        ----- change style according to telescope.pyi
+        ----- change style according to telescope.pyi 
 -- Change Camera layout 
         ----- About me text✅
         ----- card coming from left to right✅
         ----- Refine the animations
+-- Design Gallery List
+        ----- Card hover transitions
+        https://dribbble.com/shots/18201687-Exo-Ape-Work-Transitions
+        https://dribbble.com/ExoApe
+-- Design Gallery Sections
 
+---- previe list design 
+        ------https://reactbits.dev/components/flying-posters
+        ------https://reactbits.dev/components/flowing-menu
+        ------ item will be highlighted with this as it reaches the center of the page https://reactbits.dev/components/fluid-glass
+        ----- https://jitter.video/templates/
+        ----- https://jitter.video/file/?id=zDzYdF1_NYSBQUIyBqigF
+        ----- https://jitter.video/file/?id=iDQCJVGldVGOWz73eNR1BVfC
+        ----- https://sketchfab.com/3d-models/floating-poster-7cf08f4e29b74fcf9e143d642ae8f274
 
+https://reactbits.dev/animations/shape-blur
 
 Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
 

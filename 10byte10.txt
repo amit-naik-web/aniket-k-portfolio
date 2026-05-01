@@ -65,38 +65,6 @@ https://stackblitz.com/edit/vitejs-vite-auctqy?file=src%2FApp.jsx - auto scroll
 
 https://props.studiolumio.com/
 
-
-      const modelPositions = [
-        {
-          cameraOrbit: "0deg 75deg 30m",      // Front view
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "60deg 75deg 30m",     // Rotate right 60°
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "120deg 75deg 30m",    // Rotate right 120°
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "180deg 75deg 30m",    // Back view (180°)
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "240deg 75deg 30m",    // Rotate right 240°
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "300deg 75deg 30m",    // Rotate right 300°
-          fieldOfView: "45deg"
-        },
-        {
-          cameraOrbit: "360deg 75deg 30m",    // Complete 360° rotation
-          fieldOfView: "45deg"
-        }
-      ];
-
 https://www.ciridae.com/
 
 https://www.breakthroughenergy.org/
