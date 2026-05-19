@@ -1,0 +1,216 @@
+---
+import { testimonials } from '../data/testimonials';
+const cards = testimonials.slice(0, 4);
+---
+
+<section class="rn-section" id="rn-section">
+  <!-- Static text layer -->
+  <div class="rn-text">
+    <div class="rn-heading-col">
+      <h2 class="rn-heading">
+        WHAT CLIENTS<br />
+        SAY ABOUT<br />
+        MY WORK.
+      </h2>
+    </div>
+    <div class="rn-desc-col">
+      <p class="rn-desc">
+        I work closely with clients to understand their vision and translate it
+        into exceptional digital experiences. My commitment to quality and
+        attention to detail shows in every project.
+      </p>
+    </div>
+  </div>
+
+  <!-- Cards layer (animated) -->
+  <div class="rn-cards-layer">
+    {cards.map((t, i) => (
+      <div class="rn-card" data-index={i}>
+        <div class="rn-card-company">{t.company}</div>
+        <p class="rn-card-quote">"{t.text}"</p>
+        <div class="rn-card-footer">
+          <span class="rn-card-name">{t.name.toUpperCase()}</span>
+          <span class="rn-card-role">{t.role}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .rn-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: #ebebf2;
+    overflow: hidden;
+  }
+
+  /* ── Text content ── */
+  .rn-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 8vh 5vw 0;
+  }
+
+  .rn-heading-col {
+    width: 58%;
+  }
+
+  .rn-heading {
+    font-family: 'Red Hat Display', 'DM Sans', sans-serif;
+    font-size: clamp(2.8rem, 7vw, 7.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    color: #0a0a0a;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .rn-desc-col {
+    width: 30%;
+    padding-top: 1rem;
+  }
+
+  .rn-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: #444;
+    line-height: 1.65;
+    max-width: 300px;
+    margin: 0;
+  }
+
+  /* ── Cards layer ── */
+  .rn-cards-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .rn-card {
+    position: absolute;
+    width: 260px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 3px;
+    padding: 1.4rem 1.5rem 1.3rem;
+    box-shadow: 0 6px 32px rgba(0, 0, 0, 0.09), 0 1px 4px rgba(0, 0, 0, 0.06);
+    pointer-events: all;
+    will-change: transform, opacity;
+  }
+
+  /* Final resting positions defined in CSS — reliable regardless of JS timing */
+  .rn-card:nth-child(1) { left: 6%;  top: 22%; }
+  .rn-card:nth-child(2) { left: 26%; top: 36%; }
+  .rn-card:nth-child(3) { left: 47%; top: 18%; }
+  .rn-card:nth-child(4) { left: 67%; top: 30%; }
+
+  .rn-card-company {
+    font-family: 'Red Hat Display', 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0a0a0a;
+    margin-bottom: 0.7rem;
+    letter-spacing: -0.01em;
+  }
+
+  .rn-card-quote {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    color: #222;
+    line-height: 1.65;
+    margin: 0 0 1.4rem;
+  }
+
+  .rn-card-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 0.9rem;
+  }
+
+  .rn-card-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #0a0a0a;
+    letter-spacing: 0.08em;
+  }
+
+  .rn-card-role {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    color: #666;
+    letter-spacing: 0.02em;
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Rotations matching the CSS nth-child order
+  const rotations = [-5, 2, -3, 5];
+
+  function init() {
+    const section = document.getElementById('rn-section') as HTMLElement;
+    if (!section) return;
+
+    const cards = gsap.utils.toArray<HTMLElement>('#rn-section .rn-card');
+    if (cards.length === 0) return;
+
+    // Use window.innerHeight — always accurate at this point
+    const offscreen = window.innerHeight + 80;
+
+    // Set all cards: CSS already positions them; GSAP pushes them below + hides
+    cards.forEach((card, i) => {
+      gsap.set(card, {
+        y:        offscreen,
+        rotation: rotations[i] ?? 0,
+        opacity:  0,
+        transformOrigin: 'center center',
+      });
+    });
+
+    // Pinned scroll timeline — each card rises one after another
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        pin:     true,
+        start:   'top top',
+        end:     '+=2400',
+        scrub:   1.5,
+      },
+    });
+
+    cards.forEach((card, i) => {
+      tl.to(
+        card,
+        {
+          y:        0,
+          opacity:  1,
+          duration: 0.4,
+          ease:     'power3.out',
+        },
+        i * 0.3   // stagger: each card starts 30% of the timeline after the previous
+      );
+    });
+
+    ScrollTrigger.refresh();
+  }
+
+  // Run after full paint so CSS positions are applied
+  if (document.readyState === 'complete') {
+    init();
+  } else {
+    window.addEventListener('load', init);
+  }
+</script>

@@ -1,0 +1,512 @@
+---
+
+---
+
+<section class="pb-hero" data-pb-hero>
+  <div class="pb-hero__viewport" data-pb-viewport>
+    <div class="pb-hero__noise" aria-hidden="true"></div>
+    <div class="pb-hero__gradient" aria-hidden="true"></div>
+
+    <div class="pb-hero__ball-wrap" data-pb-ball-wrap>
+      <canvas class="pb-hero__canvas" width="1680" height="1680" data-pb-canvas></canvas>
+    </div>
+
+    <div class="pb-hero__content">
+      <div class="pb-hero__text">
+        <p class="pb-hero__eyebrow" data-pb-reveal>Creative Studio</p>
+        <h1 class="pb-hero__heading" data-pb-reveal>
+          <span class="pb-hero__line">We craft</span>
+          <span class="pb-hero__line pb-hero__line--accent">visual</span>
+          <span class="pb-hero__line">stories</span>
+        </h1>
+        <p class="pb-hero__sub" data-pb-reveal>
+          Photography & film that moves people.
+        </p>
+        <a href="#work" class="pb-hero__cta" data-pb-reveal>
+          <span>View Work</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="pb-hero__scroll-hint" data-pb-reveal>
+      <span class="pb-hero__scroll-line"></span>
+      <span class="pb-hero__scroll-label">Scroll</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const heroEl = document.querySelector('[data-pb-hero]') as HTMLElement | null;
+    if (!heroEl) return;
+    const viewportEl = heroEl.querySelector('[data-pb-viewport]') as HTMLElement | null;
+    const ballEl = heroEl.querySelector('[data-pb-ball-wrap]') as HTMLElement | null;
+    const canvasEl = heroEl.querySelector('[data-pb-canvas]') as HTMLCanvasElement | null;
+    if (!viewportEl || !ballEl || !canvasEl) return;
+
+    const hero = heroEl;
+    const ball = ballEl;
+    const vp = viewportEl;
+    const canvas = canvasEl;
+
+    const ctxOrNull = canvasEl.getContext('2d');
+    if (!ctxOrNull) return;
+    const ctx = ctxOrNull;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const CX = W / 2;
+    const CY = H / 2;
+    const FOCAL = (W / 2) / Math.tan((45 * Math.PI / 180) / 2);
+    const CAM_Z = 5.2;
+    const SPHERE_RX = 1.72;
+    const SPHERE_RY = 1.60;
+    const SPHERE_RZ = 1.72;
+    const SPHERE_SIZE = 1.65;
+    const FADE_END = -0.15 * SPHERE_RZ;
+    const FADE_START = 0.15 * SPHERE_RZ;
+    const MIN_SCALE = 0.96;
+    const MAX_SCALE = 1;
+    const SCROLL_ROTATION = Math.PI * 1.2;
+    const axis = { x: -1 / Math.SQRT2, y: 1 / Math.SQRT2, z: 0 };
+
+    const imgIds = [
+      '1506905925346-21bda4d32df4','1470071459604-3b5ec3a7fe05','1501854140801-50d01698950b',
+      '1441974231531-c6227db76b6e','1518020382113-a7e8fc38eac9','1507003211169-0a1dd7228f2d',
+      '1494790108377-be9c29b29330','1472214103451-9374bd1c798e','1519681393784-d120267933ba',
+      '1502082553048-f009c37129b9','1464822759023-fed622ff2c3b','1426604966848-d7adac402bff',
+      '1500534314209-a25ddb2bd429','1532274402911-5a369e4c4bb5','1534430480872-3498386e7856',
+      '1540979388789-6cee28a1cdc9','1547471080-7cc2caa01a7e','1551632811-561732d1e306',
+      '1559827291-72416316a7b0','1566438480900-0609be27db4c','1574169208507-84376144848b',
+      '1578632767115-351597cf2a0d','1580489944761-15a19d654956','1583394838336-acd977736f90',
+      '1586348943529-beaae6c28db9','1589394815804-964ed0be2eb5','1590523741831-ab7e8b8f9c7f',
+      '1598300042247-d088f8ab3a91','1601758125940-8f527e22a4ac','1604537466158-719b1972feb8',
+      '1609921212029-bb5a28e60960','1614851099175-e5322f1f639b','1617957718587-13e31b39da5b',
+      '1622547748225-3fc4abd2cca0','1625244695730-7ace6c8e8c1b','1472396961693-142e6e269027',
+      '1433086074074-e4f486ddfe1f','1418065460487-3e41a6c84dc5','1439853949212-36652a89b5f6',
+      '1445294211564-3ca59d999abd','1448375240586-882707db888b',
+      '1469474968028-56623f02e42e','1471922694854-ff1b63b20054','1475924156734-496f6cac6ec1',
+      '1477322524774-a39f8ec0a0c4','1480714378702-484de788b4cc','1482686115713-0fbcaced6e28',
+      '1484318571209-661cf29a69d8','1488330219917-7b6eda23ef66','1490750967868-88df5691b2e3',
+      '1501594907352-962bc0d0ab83','1495562567929-d78eab1e8c64','1504670280869-ab9db510ef36',
+      '1516037265031-24729460a179','1518190223539-8fcdf1985d0e','1522202176988-66273c2fd55f',
+      '1531297484001-80022131f5a1','1534528741775-53994a69daeb','1540189549337-e6d37c8f5b93',
+      '1551183059-8ea35f51f26f','1554114811-9e0a589fc0d4','1555939594-58d7cb561ad1',
+      '1560518883-8b460b7bd63e','1561839928-16166e8d8d23','1565373951084-cc83d26ab283',
+      '1571171316882-4c6b8f1d41b6','1574683963254-4f0c8e19455e','1578985541497-707cf4f0c1c6',
+      '1588196749392-346695b75230','1590002891429-712da7266b8c','1596115898324-7a9000d86d80',
+      '1600092127934-ba23e68db94c','1605557621942-13bff9f0e7a8','1609732816541-3b2aa4de92d5',
+      '1619761314387-9cea43d7a0a8','1621619890715-1bd3a8b2df65','1500530855697-b586d0ba3fff',
+      '1493246507139-91e8fad9978e','1511497584788-876760111e2d','1531746020798-e6953c6e0e09',
+      '1519909261732-41c4a4ac7e52','1521295121783-17131b767354','1504198455329-9b4f0e6b1d75'
+    ];
+    const baseW = [0.34, 0.25, 0.30, 0.36, 0.23, 0.32, 0.27, 0.36, 0.30, 0.25];
+    const baseH = [0.25, 0.32, 0.30, 0.23, 0.30, 0.25, 0.34, 0.23, 0.28, 0.32];
+
+    function fibSphere(n: number) {
+      const pts = [];
+      const golden = Math.PI * (3 - Math.sqrt(5));
+      for (let i = 0; i < n; i++) {
+        const y = 1 - (i / (n - 1)) * 2;
+        const r = Math.sqrt(1 - y * y);
+        const t = golden * i;
+        pts.push([r * Math.cos(t), y, r * Math.sin(t)]);
+      }
+      return pts;
+    }
+
+    function qMul(a: any, b: any) {
+      return {
+        w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+        x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+        y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+        z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w
+      };
+    }
+
+    function qNorm(q: any) {
+      const l = Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z) || 1;
+      return { w: q.w / l, x: q.x / l, y: q.y / l, z: q.z / l };
+    }
+
+    function qFromAxisAngle(ax: any, angle: number) {
+      const s = Math.sin(angle / 2);
+      return { w: Math.cos(angle / 2), x: ax.x * s, y: ax.y * s, z: ax.z * s };
+    }
+
+    function applyQ(q: any, v: number[]) {
+      const qv = { w: 0, x: v[0], y: v[1], z: v[2] };
+      const qc = { w: q.w, x: -q.x, y: -q.y, z: -q.z };
+      const r = qMul(qMul(q, qv), qc);
+      return [r.x, r.y, r.z];
+    }
+
+    const unitPts = fibSphere(imgIds.length);
+    const imgs = imgIds.map((id, i) => {
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.src = `https://images.unsplash.com/photo-${id}?w=320&h=320&fit=crop&auto=format`;
+      return { el: im, bw: baseW[i % baseW.length], bh: baseH[i % baseH.length] };
+    });
+
+    const fallbacks = ['#e8a87c', '#85c1e9', '#82e0aa', '#f1948a', '#c39bd3', '#f8c471'];
+
+    let scrollProgress = 0;
+    let targetProgress = 0;
+    let prevTargetProgress = 0;
+    let currentScale = MIN_SCALE;
+    let lastRenderedAngle = -999;
+    let rotationAngle = 0;
+    let targetRotationAngle = 0;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 6);
+
+    function updatePin() {
+      const rect = hero.getBoundingClientRect();
+      const sectionH = hero.offsetHeight;
+      const vpH = window.innerHeight;
+      const scrollable = sectionH - vpH;
+
+      if (rect.top >= 0) {
+        vp.style.position = 'absolute';
+        vp.style.top = '0px';
+        vp.style.bottom = 'auto';
+      } else if (rect.bottom <= vpH) {
+        vp.style.position = 'absolute';
+        vp.style.top = 'auto';
+        vp.style.bottom = '0px';
+      } else {
+        vp.style.position = 'fixed';
+        vp.style.top = '0px';
+        vp.style.bottom = 'auto';
+      }
+
+      if (scrollable <= 0) {
+        targetProgress = 0;
+      } else {
+        const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
+        const newProgress = scrolled / scrollable;
+        // Only advance target rotation when scrolling down
+        if (newProgress > prevTargetProgress) {
+          const delta = newProgress - prevTargetProgress;
+          targetRotationAngle += delta * SCROLL_ROTATION;
+        }
+        prevTargetProgress = newProgress;
+        targetProgress = newProgress;
+      }
+    }
+
+    window.addEventListener('scroll', updatePin, { passive: true });
+    window.addEventListener('resize', updatePin);
+    updatePin();
+
+    function frame() {
+      requestAnimationFrame(frame);
+
+      scrollProgress += (targetProgress - scrollProgress) * 0.018;
+      const eased = easeOutCubic(scrollProgress);
+      const targetScale = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * eased;
+      currentScale += (targetScale - currentScale) * 0.014;
+
+      ball.style.transform = `translate(50%, 50%) scale(${currentScale.toFixed(4)})`;
+      hero.classList.toggle('pb-hero--active', scrollProgress > 0.02);
+
+      // Rotation only moves forward (toward targetRotationAngle), never backward
+      rotationAngle += (targetRotationAngle - rotationAngle) * 0.018;
+      const rotationAngleSnap = rotationAngle;
+
+      if (Math.abs(rotationAngleSnap - lastRenderedAngle) < 0.001 && Math.abs(targetScale - currentScale) < 0.0005) {
+        return;
+      }
+      lastRenderedAngle = rotationAngleSnap;
+
+      const qRot = qFromAxisAngle(axis, rotationAngleSnap);
+
+      ctx.clearRect(0, 0, W, H);
+
+      const items = unitPts.map((p, i) => {
+        const rp = applyQ(qRot, p);
+        const wz = rp[2] * SPHERE_RZ;
+        const camZ = CAM_Z - wz;
+        const s = FOCAL / camZ;
+        const sx = CX + rp[0] * SPHERE_RX * s;
+        const sy = CY + rp[1] * SPHERE_RY * s;
+        const t = (wz / SPHERE_RZ + 1) / 2;
+        const sizeScale = 0.12 + Math.pow(t, 2.2);
+        const fadeT = Math.min(1, (wz - FADE_END) / (FADE_START - FADE_END));
+        const opacity = fadeT * (0.2 + Math.pow(t, 1.8) * 0.8);
+        const { bw, bh } = imgs[i];
+        const pw = bw * SPHERE_SIZE * s * sizeScale;
+        const ph = bh * SPHERE_SIZE * s * sizeScale;
+        return { i, sx, sy, wz, opacity, pw, ph };
+      });
+
+      items.sort((a, b) => a.wz - b.wz);
+
+      for (const { i, sx, sy, wz, opacity, pw, ph } of items) {
+        if (wz < FADE_END || opacity < 0.01) continue;
+        const { el } = imgs[i];
+
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(sx - pw / 2 - 1.5, sy - ph / 2 - 1.5, pw + 3, ph + 3);
+
+        if (el.complete && el.naturalWidth > 0) {
+          ctx.drawImage(el, sx - pw / 2, sy - ph / 2, pw, ph);
+        } else {
+          ctx.fillStyle = fallbacks[i % fallbacks.length];
+          ctx.fillRect(sx - pw / 2, sy - ph / 2, pw, ph);
+        }
+        ctx.restore();
+      }
+    }
+
+    frame();
+
+    const reveals = hero.querySelectorAll('[data-pb-reveal]');
+    reveals.forEach((el, i) => {
+      (el as HTMLElement).style.transitionDelay = `${0.3 + i * 0.15}s`;
+      requestAnimationFrame(() => el.classList.add('revealed'));
+    });
+  })();
+</script>
+
+<style>
+  .pb-hero {
+    position: relative;
+    width: 100%;
+    height: 300vh;
+    background: #0a0a0a;
+  }
+
+  .pb-hero__viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .pb-hero__noise {
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .pb-hero__gradient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 80% at 30% 70%, rgba(6, 182, 212, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .pb-hero__content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 1300px;
+    padding: 0 3rem;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .pb-hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
+  }
+
+  .pb-hero__eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+  }
+
+  .pb-hero__heading {
+    font-family: 'Red Hat Display', 'DM Sans', sans-serif;
+    font-size: clamp(3.2rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pb-hero__line {
+    display: block;
+  }
+
+  .pb-hero__line--accent {
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .pb-hero__sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0;
+  }
+
+  .pb-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 100px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    width: fit-content;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .pb-hero__cta:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: #fff;
+  }
+
+  .pb-hero__cta svg {
+    transition: transform 0.3s ease;
+  }
+
+  .pb-hero__cta:hover svg {
+    transform: translate(2px, -2px);
+  }
+
+  .pb-hero__ball-wrap {
+    position: absolute;
+    right: 10%;
+    bottom: 10%;
+    transform: translate(50%, 50%) scale(0.96);
+    transform-origin: center center;
+    z-index: 2;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .pb-hero__canvas {
+    display: block;
+    width: 1680px;
+    height: 1680px;
+  }
+
+  .pb-hero--active .pb-hero__scroll-hint {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .pb-hero__scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    z-index: 4;
+  }
+
+  .pb-hero__scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  .pb-hero__scroll-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* Reveal animations */
+  [data-pb-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  [data-pb-reveal].revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.2); }
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .pb-hero__content {
+      text-align: center;
+      padding: 0 1.5rem;
+    }
+
+    .pb-hero__text {
+      align-items: center;
+      max-width: 100%;
+    }
+
+    .pb-hero__heading {
+      align-items: center;
+    }
+
+    .pb-hero__sub {
+      max-width: 320px;
+    }
+
+    .pb-hero__canvas {
+      width: 1200px;
+      height: 1200px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pb-hero__heading {
+      font-size: clamp(2.4rem, 10vw, 3.2rem);
+    }
+
+    .pb-hero__canvas {
+      width: 960px;
+      height: 960px;
+    }
+  }
+</style>

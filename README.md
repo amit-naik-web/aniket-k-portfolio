@@ -51,6 +51,8 @@ https://www.awwwards.com/websites/design-agencies/
 
 
 TODO:
+-- Design Hero Section
+
 -- Add Infographics somewhere like
         ------ number of projects
         ------ years of experience
@@ -62,19 +64,20 @@ TODO:
         ------ Content 
         ------ Form 
         ------ add authentic cricular text with dot spepearted with a genunility logo at center 
--- Desgin Collections Card
-        ----- change style according to telescope.pyi 
+
 -- Change Camera layout 
         ----- About me text✅
         ----- card coming from left to right✅
         ----- Refine the animations
--- Design Gallery List
+
+-- Design Gallery List X
         ----- Card hover transitions
         https://dribbble.com/shots/18201687-Exo-Ape-Work-Transitions
         https://dribbble.com/ExoApe
--- Design Gallery Sections
 
----- previe list design 
+-- Design Gallery Sections with big text and transition 
+
+-- preview list design ✅
         ------https://reactbits.dev/components/flying-posters
         ------https://reactbits.dev/components/flowing-menu
         ------ item will be highlighted with this as it reaches the center of the page https://reactbits.dev/components/fluid-glass
@@ -83,6 +86,19 @@ TODO:
         ----- https://jitter.video/file/?id=iDQCJVGldVGOWz73eNR1BVfC
         ----- https://sketchfab.com/3d-models/floating-poster-7cf08f4e29b74fcf9e143d642ae8f274
 
+        inspiration 
+        ----- https://t11.com/
+        ----- https://codepen.io/argyleink/pen/ZEdrzJZ
+
+        -https://codepen.io/jh3y/pen/VYZwOwd
+        -https://tympanus.net/codrops/2026/03/09/building-a-scroll-reactive-3d-gallery-with-three-js-velocity-and-mood-based-backgrounds/
+        -https://codepen.io/bokoko33/pen/VwpOWMR
+        -https://codepen.io/armantaherian/pen/ZyZWVZ
+        -https://codepen.io/shshaw/pen/GRdbZEL
+
+-- Testimonial card design change✅
+        ---- refine and finalize animation
+-- grid of Brands section 
 https://reactbits.dev/animations/shape-blur
 
 Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.

@@ -1,0 +1,317 @@
+---
+const items = [
+  { name: "PHOTOSHOOTS" },
+  { name: "INTERVIEWS" },
+  { name: "EVENTS" },
+  { name: "SHORTFILMS" },
+  { name: "ADVERTISMENTS" },
+  { name: "MISCELLANEOUS" },
+];
+
+const MARKER_HEIGHT_VH = 32;
+const SPACER_VH = 50 - MARKER_HEIGHT_VH / 2;
+const sectionHeight = `${items.length * MARKER_HEIGHT_VH + SPACER_VH * 2}vh`;
+
+---
+
+<section
+  id="preview-list-showcase-3"
+  class="relative w-full overflow-hidden bg-[#1c1c1c]"
+  style={`height: ${sectionHeight};`}
+>
+  <div
+    id="preview-list-showcase-3-stage"
+    class="pointer-events-none fixed inset-0 z-20 flex items-center justify-center opacity-0"
+    aria-hidden="true"
+  >
+    <!-- Left arrow (pointing right toward text) -->
+    <div class="preview-list-arrow preview-list-arrow-left">
+      <svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor">
+        <polygon points="18,11 0,0 0,22"></polygon>
+      </svg>
+    </div>
+
+    <!-- Right arrow (pointing left toward text) -->
+    <div class="preview-list-arrow preview-list-arrow-right">
+      <svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor">
+        <polygon points="0,11 18,0 18,22"></polygon>
+      </svg>
+    </div>
+
+    <div class="preview-list-stage-shell">
+      {
+        items.map((item, index) => (
+          <div
+            data-preview-item
+            data-item-index={index}
+            class:list={[
+              "preview-list-item absolute left-1/2 top-1/2 whitespace-nowrap font-black uppercase leading-none tracking-tight",
+              index === 0 ? "opacity-100" : "opacity-0",
+            ]}
+          >
+            {item.name}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="relative z-10 mx-auto w-full max-w-[1100px]">
+    <div style={`height: ${SPACER_VH}vh;`} aria-hidden="true"></div>
+    {
+      items.map((item, index) => (
+        <div
+          data-item-marker
+          data-item-index={index}
+          class="w-full"
+          style={`height: ${MARKER_HEIGHT_VH}vh;`}
+          aria-hidden="true"
+        ></div>
+      ))
+    }
+    <div style={`height: ${SPACER_VH}vh;`} aria-hidden="true"></div>
+  </div>
+</section>
+
+<script>
+  const showcaseSection = document.getElementById("preview-list-showcase-3");
+  const showcaseStage = document.getElementById(
+    "preview-list-showcase-3-stage",
+  );
+  const itemElements = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-preview-item]"),
+  );
+  const markerElements = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-item-marker]"),
+  );
+
+  const MAX_DISTANCE = 1.45;
+  const POSITION_MULTIPLIER = 0.54;
+  const MAX_TRANSLATE = 0.78;
+  const SMOOTHING = 0.12;
+  const SETTLE_THRESHOLD = 0.003;
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  const lerp = (start: number, end: number, progress: number) =>
+    start + (end - start) * progress;
+
+  const itemStates = itemElements.map(() => ({
+    currentY: 0,
+    targetY: 0,
+    currentScaleX: 1,
+    targetScaleX: 1,
+    currentScaleY: 1,
+    targetScaleY: 1,
+    currentRotateX: 0,
+    targetRotateX: 0,
+    currentOpacity: 0,
+    targetOpacity: 0,
+    currentBlur: 0,
+    targetBlur: 0,
+    currentShade: 210,
+    targetShade: 210,
+  }));
+
+  let measureRafId: number | null = null;
+  let animateRafId: number | null = null;
+
+  function animateItems() {
+    animateRafId = null;
+    let shouldContinue = false;
+
+    itemElements.forEach((item, index) => {
+      const state = itemStates[index];
+      if (!state) return;
+
+      state.currentY = lerp(state.currentY, state.targetY, SMOOTHING);
+      state.currentScaleX = lerp(
+        state.currentScaleX,
+        state.targetScaleX,
+        SMOOTHING,
+      );
+      state.currentScaleY = lerp(
+        state.currentScaleY,
+        state.targetScaleY,
+        SMOOTHING,
+      );
+      state.currentRotateX = lerp(
+        state.currentRotateX,
+        state.targetRotateX,
+        SMOOTHING,
+      );
+      state.currentOpacity = lerp(
+        state.currentOpacity,
+        state.targetOpacity,
+        SMOOTHING,
+      );
+      state.currentBlur = lerp(state.currentBlur, state.targetBlur, SMOOTHING);
+      state.currentShade = lerp(
+        state.currentShade,
+        state.targetShade,
+        SMOOTHING,
+      );
+
+      if (
+        Math.abs(state.targetY - state.currentY) > SETTLE_THRESHOLD ||
+        Math.abs(state.targetScaleX - state.currentScaleX) > SETTLE_THRESHOLD ||
+        Math.abs(state.targetScaleY - state.currentScaleY) > SETTLE_THRESHOLD ||
+        Math.abs(state.targetRotateX - state.currentRotateX) >
+          SETTLE_THRESHOLD ||
+        Math.abs(state.targetOpacity - state.currentOpacity) >
+          SETTLE_THRESHOLD ||
+        Math.abs(state.targetBlur - state.currentBlur) > SETTLE_THRESHOLD ||
+        Math.abs(state.targetShade - state.currentShade) > SETTLE_THRESHOLD
+      ) {
+        shouldContinue = true;
+      }
+
+      const shade = Math.round(state.currentShade);
+      item.style.transform =
+        `translate3d(-50%, calc(-50% + ${state.currentY.toFixed(1)}px), 0) ` +
+        `scaleX(${state.currentScaleX.toFixed(3)}) ` +
+        `scaleY(${state.currentScaleY.toFixed(3)}) ` +
+        `rotateX(${state.currentRotateX.toFixed(2)}deg)`;
+      item.style.opacity = state.currentOpacity.toFixed(3);
+      item.style.filter = `blur(${state.currentBlur.toFixed(2)}px)`;
+      item.style.color = `rgb(${shade}, ${shade}, ${shade})`;
+      item.style.zIndex = `${1000 - Math.round(Math.abs(state.currentY))}`;
+    });
+
+    if (shouldContinue) {
+      animateRafId = requestAnimationFrame(animateItems);
+    }
+  }
+
+  function ensureAnimation() {
+    if (animateRafId !== null) return;
+    animateRafId = requestAnimationFrame(animateItems);
+  }
+
+  function updateTargets() {
+    measureRafId = null;
+    const viewportHeight = window.innerHeight;
+    const sectionRect = showcaseSection?.getBoundingClientRect();
+    const isSectionActive = Boolean(
+      sectionRect && sectionRect.top < viewportHeight && sectionRect.bottom > 0,
+    );
+
+    showcaseStage?.classList.toggle("is-visible", isSectionActive);
+
+    markerElements.forEach((marker, index) => {
+      const state = itemStates[index];
+      if (!state) return;
+
+      const rect = marker.getBoundingClientRect();
+      const markerCenter = rect.top + rect.height / 2;
+      const rawDistance = (markerCenter - viewportHeight / 2) / viewportHeight;
+      const distance = clamp(rawDistance, -MAX_DISTANCE, MAX_DISTANCE);
+      const absDistance = Math.abs(distance);
+      const emphasis = 1 - clamp(absDistance / MAX_DISTANCE, 0, 1);
+
+      state.targetY =
+        clamp(
+          markerCenter - viewportHeight / 2,
+          -viewportHeight * MAX_TRANSLATE,
+          viewportHeight * MAX_TRANSLATE,
+        ) * POSITION_MULTIPLIER;
+      const distPow = Math.pow(absDistance, 1.4);
+      state.targetScaleX = 1 + clamp(distPow * 1.8, 0, 2.6);
+      state.targetScaleY = 1 - clamp(distPow * 0.52, 0, 0.62);
+      state.targetRotateX = clamp(distance * 68, -72, 72);
+      state.targetOpacity = lerp(0.12, 1, emphasis);
+      state.targetBlur = Math.max(0, (absDistance - 0.18) * 5.5);
+      state.targetShade = lerp(40, 240, emphasis);
+    });
+
+    ensureAnimation();
+  }
+
+  function requestUpdate() {
+    if (measureRafId !== null) return;
+    measureRafId = requestAnimationFrame(updateTargets);
+  }
+
+  updateTargets();
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  window.addEventListener("beforeunload", () => {
+    if (measureRafId !== null) cancelAnimationFrame(measureRafId);
+    if (animateRafId !== null) cancelAnimationFrame(animateRafId);
+  });
+</script>
+
+<style>
+  #preview-list-showcase-3-stage {
+    visibility: hidden;
+    transition: opacity 180ms ease;
+  }
+
+  #preview-list-showcase-3-stage.is-visible {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .preview-list-stage-shell {
+    position: relative;
+    width: min(96vw, 78rem);
+    height: 100vh;
+    perspective: 1200px;
+    perspective-origin: center center;
+    transform-style: preserve-3d;
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.6) 10%,
+      rgba(0, 0, 0, 1) 22%,
+      rgba(0, 0, 0, 1) 78%,
+      rgba(0, 0, 0, 0.6) 90%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.6) 10%,
+      rgba(0, 0, 0, 1) 22%,
+      rgba(0, 0, 0, 1) 78%,
+      rgba(0, 0, 0, 0.6) 90%,
+      transparent 100%
+    );
+  }
+
+  .preview-list-item {
+    font-size: clamp(2.4rem, 7vw, 5.8rem);
+    transform-origin: center center;
+    backface-visibility: hidden;
+    will-change: transform, opacity, filter, color;
+  }
+
+  .preview-list-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    z-index: 30;
+  }
+
+  .preview-list-arrow-left {
+    left: clamp(4rem, 14vw, 12rem);
+  }
+
+  .preview-list-arrow-right {
+    right: clamp(4rem, 14vw, 12rem);
+  }
+
+  @media (max-width: 768px) {
+    .preview-list-item {
+      font-size: clamp(2rem, 11vw, 4rem);
+    }
+
+    .preview-list-arrow svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+</style>

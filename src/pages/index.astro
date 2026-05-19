@@ -3,12 +3,16 @@ import Layout from "../layouts/Layout.astro";
 import "../styles/global.css";
 // import HeroSection from "../components/heroSection.astro";
 // import LatestWorkShowCase from "../components/latestWorkShowCase.astro";
-import PreviewListShowCase from "../components/previewListShowCase2.astro";
+import ScreenShowcase from "../components/ScreenShowcase1.astro";
+import PreviewListShowCase from "../components/previewListShowCase3.astro";
 import ReviewSection from "../components/reviewSection.astro";
+import ReviewSection1 from "../components/reviewSection1.astro";
 // import ModelViewer1 from "../components/ModelViewer1.astro";
 import ModelViewer2 from "../components/ModelViewer2.astro";
 import Hero3 from "../components/hero3.astro";
 import CTA from "../components/CTA.astro";
+import PhotoballHero from "../components/PhotoballHero.astro";
+
 ---
 
 <Layout title="01byte10">
@@ -22,8 +26,9 @@ import CTA from "../components/CTA.astro";
     playsinline
   >
     Your browser does not support the video tag.
-  </video>
-  <Hero3 /> -->
+  </video> -->
+  <!-- <PhotoballHero /> -->
+  <Hero3 />
 
   <!-- <div class="h-[100vh] w-full"></div> -->
   <!-- CLients ribbon -->
@@ -38,16 +43,17 @@ import CTA from "../components/CTA.astro";
     width="100vw"
     height="100vh"
   /> -->
-  <!-- <ModelViewer2
+  <ModelViewer2
     modelPath="/models/source.glb"
     width="100vw"
     height="100vh"
-  /> -->
+  />
   <!-- <Works1 /> -->
   <!-- Latest Work/Feature Section -->
   <!-- <LatestWorkShowCase /> -->
-
-  <!-- <div class="h-[30vh] w-full"></div> -->
+  <div class="h-[30vh] w-full"></div>
+  <ScreenShowcase />
+  <div class="h-[30vh] w-full"></div>
 
 
   <!-- Preview List Section -->
@@ -60,10 +66,13 @@ import CTA from "../components/CTA.astro";
   <!-- Split Screen Overlay - Zoom out effect revealing background -->
   <!-- <SplitScreenOverlay /> -->
    
-  <!-- Review Section -->
-  <ReviewSection />
-  <!-- <div class="h-[40vh] w-full"></div>
-  <CTA /> -->
+  <!-- Review Section -->  
+  <div class="h-[40vh] w-full"></div>
+
+  <!-- Noomo-style scroll review section -->
+  <ReviewSection1 />
+  <div class="h-[100vh] w-full"></div>
+  <CTA />
 </Layout>
 
 <style>

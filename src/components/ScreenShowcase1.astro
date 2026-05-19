@@ -1,0 +1,465 @@
+---
+// ScreenShowcase1.astro — Cartier-style curved-wall carousel via WebGL.
+//
+//   Architecture:
+//     • A scroll-track <section> consumes the vertical scroll budget.
+//     • A single <canvas> is pinned to the viewport by GSAP ScrollTrigger.
+//     • Each chapter is rendered as ONE real 3D CylinderGeometry mesh
+//       (partial arc, BackSide rendering) with the chapter image as a
+//       texture. No strip-slicing; no seams; the image is mapped onto a
+//       genuine curved surface by the GPU.
+//     • All walls live in a wallGroup that translates along X driven by
+//       ScrollTrigger progress → R→L pan.
+//     • A soft floor reflection per wall (cloned mesh, scaleY -1, alpha-
+//       gradient masked) gives the Cartier mirror-floor feel cheaply.
+//     • Caption + counter + dots stay as a DOM overlay over the canvas,
+//       updated in the same onUpdate callback.
+
+interface Chapter {
+  src: string;
+  num: string;
+  title: string;
+  subtitle: string;
+}
+
+const chapters: Chapter[] = [
+  { src: "/coldplay.jpg",        num: "01", title: "Coldplay",     subtitle: "Music of the Spheres — Mumbai 2024" },
+  { src: "/anjunadeep.jpg",      num: "02", title: "Anjunadeep",   subtitle: "Open Air Series — Goa 2023"        },
+  { src: "/BenBohmer.jpg",       num: "03", title: "Ben Böhmer",   subtitle: "Live Strings — Sunburn 2025"       },
+  { src: "/Fisher.jpg",          num: "04", title: "Fisher",       subtitle: "Losing It Tour — Bengaluru 2024"   },
+  { src: "/klang-preview-3.jpg", num: "05", title: "Klang",        subtitle: "Synth Sessions — Pune 2025"        },
+];
+
+// One viewport-height of scroll per chapter transition + 1 full viewport
+// of pin time before exit. Total section height = (N) * 100vh.
+const PIN_PER_CHAPTER_VH = 100;
+const SECTION_VH = chapters.length * PIN_PER_CHAPTER_VH;
+---
+
+<section
+  class="ss"
+  id="ss-root"
+  data-chapter-srcs={JSON.stringify(chapters.map((c) => c.src))}
+  data-chapter-count={chapters.length}
+  style={`height:${SECTION_VH}vh;`}
+>
+  <div class="ss__pin" id="ss-pin">
+    <canvas id="ss-canvas" class="ss__canvas"></canvas>
+
+    <!-- Per-screen labels — JS positions each via 3D → 2D projection -->
+    {chapters.map((c, idx) => (
+      <div class="ss__label" data-idx={idx}>
+        <div class="ss__label-meta">
+          <span class="ss__label-eyebrow">Selected Work</span>
+          <span class="ss__label-counter">
+            <span>{c.num}</span>
+            <span class="ss__counter-sep">/</span>
+            <span class="ss__counter-tot">{String(chapters.length).padStart(2, "0")}</span>
+          </span>
+        </div>
+        <h3 class="ss__label-title">{c.title}</h3>
+        <p class="ss__label-sub">{c.subtitle}</p>
+      </div>
+    ))}
+
+    <div class="ss__dots">
+      {chapters.map((_, i) => (
+        <span class="ss__dot" data-idx={i}></span>
+      ))}
+    </div>
+
+    <!-- Cinema framing -->
+    <div class="ss__vignette"></div>
+    <div class="ss__letterbox ss__letterbox--top"></div>
+    <div class="ss__letterbox ss__letterbox--bot"></div>
+  </div>
+</section>
+
+<script>
+  import * as THREE from "three";
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function init() {
+    const root   = document.getElementById("ss-root");
+    const pinEl  = document.getElementById("ss-pin");
+    const canvas = document.getElementById("ss-canvas") as HTMLCanvasElement | null;
+    if (!root || !pinEl || !canvas) return;
+
+    const chapterSrcs: string[] = JSON.parse(root.dataset.chapterSrcs || "[]");
+    const N = chapterSrcs.length;
+    if (N === 0) return;
+    const lastIdx    = N - 1;
+    // Equal angular spacing around the full circle for all N screens
+    const ANGLE_STEP = (2 * Math.PI) / N;
+
+    const labelEls       = [...document.querySelectorAll<HTMLElement>(".ss__label")];
+    const dotEls         = [...document.querySelectorAll<HTMLElement>(".ss__dot")];
+    const anchorObjects: THREE.Object3D[] = [];
+    // Per-label Y-offset for the slide-in fade animation (updated in onUpdate, read in tick)
+    const labelFadeY     = new Float32Array(N);
+
+    // ── Tuning ───────────────────────────────────────────────────────
+    // Imagine standing at the centre of a large circular room.
+    // ROOM_R  = distance from your eyes to each screen panel on the wall.
+    // SCREEN_W/H = physical size of each rectangular LED panel.
+    const ROOM_R   = 9.0;   // metres from camera to screen surface
+    const SCREEN_W = 6.0;   // screen panel width
+    const SCREEN_H = 3.375; // screen panel height  (16:9)
+    const BEZEL    = 0.10;  // dark border around each panel
+    const FOV      = 52;    // narrow FOV — shows one screen at a time
+
+    // ── Renderer ─────────────────────────────────────────────────────
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // ── Scene ────────────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020202);
+    // Gentle linear fog so the far room wall softly dissolves
+    scene.fog = new THREE.Fog(0x020202, 7, 18);
+
+    // ── Camera — standing at the room centre ─────────────────────────
+    const camera = new THREE.PerspectiveCamera(
+      FOV,
+      window.innerWidth / window.innerHeight,
+      0.05,
+      40,
+    );
+    // Eye-level at y = 0; look straight ahead toward –Z (screen 0)
+    camera.position.set(0, 0, 0);
+    camera.lookAt(0, 0, -1);
+
+    // ── Circular room wall (camera is INSIDE the cylinder) ───────────
+    // BackSide = Three.js renders the inward-facing surface, which is
+    // what an observer inside the cylinder sees.
+    const roomGeo = new THREE.CylinderGeometry(14, 14, 14, 80, 1, true);
+    const roomMat = new THREE.MeshBasicMaterial({
+      color: 0x0c0c0c,
+      side: THREE.BackSide,
+    });
+    scene.add(new THREE.Mesh(roomGeo, roomMat));
+
+    // Subtle horizontal ring lines on the room wall give depth cues
+    const ringMat = new THREE.LineBasicMaterial({ color: 0x1a1a1a });
+    for (let y = -6; y <= 6; y += 2) {
+      const ringGeo = new THREE.BufferGeometry();
+      const pts: number[] = [];
+      const segs = 80;
+      for (let s = 0; s <= segs; s++) {
+        const a = (s / segs) * Math.PI * 2;
+        pts.push(13.97 * Math.cos(a), y, 13.97 * Math.sin(a));
+      }
+      ringGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      scene.add(new THREE.Line(ringGeo, ringMat));
+    }
+
+    // Dark floor disc — seals the bottom of the room
+    const discGeo = new THREE.CircleGeometry(14, 64);
+    const discMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide });
+    const floor = new THREE.Mesh(discGeo, discMat);
+    floor.rotation.x = Math.PI / 2;
+    floor.position.y = -7;
+    scene.add(floor);
+
+    // ── Screen ring (the wallGroup rotates on scroll) ─────────────────
+    const wallGroup = new THREE.Group();
+    scene.add(wallGroup);
+
+    const loader = new THREE.TextureLoader();
+
+    chapterSrcs.forEach((src, i) => {
+      const angle = i * ANGLE_STEP;
+
+      // Each screen lives in its own local group.
+      // The group is placed on the room wall circle and rotated so
+      // its local +Z axis always points back toward the room centre
+      // (i.e. toward the camera).
+      const sg = new THREE.Group();
+      sg.position.set(
+        ROOM_R * Math.sin(angle),
+        0,
+        -ROOM_R * Math.cos(angle),
+      );
+      // rotation.y = -angle aligns the screen face toward centre
+      sg.rotation.y = -angle;
+      wallGroup.add(sg);
+
+      // ── Bezel (dark mounting frame, flush against the wall) ─────────
+      const bezelMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(SCREEN_W + BEZEL * 2, SCREEN_H + BEZEL * 2),
+        new THREE.MeshBasicMaterial({ color: 0x111111 }),
+      );
+      sg.add(bezelMesh);
+
+      // ── Screen surface — curved like an IMAX LED screen ─────────────
+      // The cylinder axis sits at the viewer's position (ROOM_R along local
+      // +Z). The arc is centred at θ = 3π/2 (–Z from the axis), so the arc
+      // surface lands at local z ≈ 0 — right at the wall. BackSide lets the
+      // viewer see the concave inner face (the wrap-around curve).
+      const screenArc  = SCREEN_W / ROOM_R;           // angle so chord ≈ SCREEN_W
+      const tStart     = (3 * Math.PI) / 2 - screenArc / 2;
+      const screenMat  = new THREE.MeshBasicMaterial({ color: 0x1e1e1e, side: THREE.BackSide });
+      const screenMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(
+          ROOM_R, ROOM_R, SCREEN_H,
+          /* radialSegments */ 64,
+          /* heightSegments */ 1,
+          /* openEnded      */ true,
+          tStart, screenArc,
+        ),
+        screenMat,
+      );
+      // Shift axis to viewer position; +0.02 pops the surface in front of bezel
+      screenMesh.position.z = ROOM_R + 0.02;
+      sg.add(screenMesh);
+
+      // Invisible anchor at bottom-left of this screen.
+      // tick() projects this to 2D each frame to position the DOM label.
+      const anchor = new THREE.Object3D();
+      anchor.position.set(-SCREEN_W / 2 + 0.15, -SCREEN_H / 2, 0.12);
+      sg.add(anchor);
+      anchorObjects.push(anchor);
+
+      loader.load(
+        src,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.minFilter  = THREE.LinearMipmapLinearFilter;
+          tex.magFilter  = THREE.LinearFilter;
+          tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          screenMat.map   = tex;
+          screenMat.color.set(0xffffff);
+          screenMat.needsUpdate = true;
+        },
+        undefined,
+        (err) => console.warn("[ScreenShowcase] texture failed:", src, err),
+      );
+    });
+
+    // ── ScrollTrigger — pin + rotation ───────────────────────────────
+    let lastActive = -1;
+    ScrollTrigger.create({
+      trigger: root,
+      pin: pinEl,
+      start: "top top",
+      end: "bottom bottom",
+      scrub: 1.2,
+      anticipatePin: 1,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        const center = self.progress * lastIdx;
+
+        // Rotate the whole ring: positive scroll → wallGroup turns
+        // counter-clockwise → current screen drifts left,
+        //                       next screen arrives from the right
+        wallGroup.rotation.y = center * ANGLE_STEP;
+
+        // Label fade — position is driven every frame in tick() via 3D projection
+        for (let i = 0; i < labelEls.length; i++) {
+          const op = Math.max(0, 1 - Math.abs(center - i) * 1.6);
+          labelEls[i].style.opacity = op.toFixed(3);
+          // slide-up offset in px: 20px when fully hidden → 0px when fully visible
+          labelFadeY[i] = (1 - op) * 20;
+        }
+
+        // Dots
+        const activeRound = Math.round(center);
+        if (activeRound !== lastActive) {
+          lastActive = activeRound;
+          dotEls.forEach((d, k) => d.classList.toggle("is-active", k === activeRound));
+        }
+      },
+    });
+
+    // Initial DOM state
+    if (dotEls[0]) dotEls[0].classList.add("is-active");
+    if (labelEls[0]) labelEls[0].style.opacity = "1";
+    lastActive = 0;
+
+    // ── Render loop ──────────────────────────────────────────────────
+    // Reusable vector — avoids allocating on every frame
+    const _tmpV    = new THREE.Vector3();
+    // Labels sit ~80px tall; offset by that so the bottom aligns with the anchor
+    const LABEL_H  = 80;
+
+    function tick() {
+      renderer.render(scene, camera);
+
+      // Project each 3D anchor to canvas pixels and reposition its DOM label.
+      // Using transform: translate3d is GPU-composited — zero layout cost.
+      const ww = window.innerWidth;
+      const wh = window.innerHeight;
+      for (let i = 0; i < anchorObjects.length; i++) {
+        anchorObjects[i].getWorldPosition(_tmpV);
+        _tmpV.project(camera);
+        if (_tmpV.z < 1) { // only update when anchor is in front of the camera
+          const px = ( _tmpV.x + 1) / 2 * ww;
+          const py = (-_tmpV.y + 1) / 2 * wh;
+          labelEls[i].style.transform =
+            `translate3d(${px.toFixed(1)}px,${(py - LABEL_H + labelFadeY[i]).toFixed(1)}px,0)`;
+        }
+      }
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // ── Resize ───────────────────────────────────────────────────────
+    function onResize() {
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      ScrollTrigger.refresh();
+    }
+    window.addEventListener("resize", onResize);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+</script>
+
+<style>
+  /* ── SCROLL TRACK ───────────────────────────────────────────────── */
+  .ss {
+    position: relative;
+    width: 100%;
+    background: #060606;
+    isolation: isolate;
+  }
+
+  /* ── PINNED VIEWPORT (ScrollTrigger pins this) ──────────────────── */
+  .ss__pin {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #060606;
+  }
+
+  .ss__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+
+  /* ── CINEMA FRAMING ─────────────────────────────────────────────── */
+  .ss__vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 95% 80% at 50% 50%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.45) 82%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .ss__letterbox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 5vh;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .ss__letterbox--top { top: 0;    background: linear-gradient(180deg, #000 55%, rgba(0,0,0,0)); }
+  .ss__letterbox--bot { bottom: 0; background: linear-gradient(0deg,   #000 55%, rgba(0,0,0,0)); }
+
+  /* ── PER-SCREEN LABELS (3D-projected positions) ─────────────────── */
+  .ss__label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    pointer-events: none;
+    color: #f1f1f1;
+    font-family: "Inter", "Helvetica Neue", system-ui, sans-serif;
+    max-width: 420px;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .ss__label-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(241, 241, 241, 0.6);
+  }
+
+  .ss__label-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ss__label-eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: rgba(241, 241, 241, 0.45);
+  }
+
+  .ss__label-counter { font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.9); }
+  .ss__counter-sep   { opacity: 0.4; margin: 0 3px; }
+  .ss__counter-tot   { color: rgba(241, 241, 241, 0.4); }
+
+  .ss__label-title {
+    font-size: clamp(20px, 2.2vw, 30px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin: 0 0 5px 0;
+    color: #fff;
+  }
+
+  .ss__label-sub {
+    font-size: clamp(11px, 0.9vw, 13px);
+    line-height: 1.4;
+    color: rgba(241, 241, 241, 0.65);
+    margin: 0;
+  }
+
+  /* ── DOTS ───────────────────────────────────────────────────────── */
+  .ss__dots {
+    position: absolute;
+    right: clamp(24px, 5vw, 80px);
+    bottom: clamp(82px, 12vh, 130px);
+    z-index: 5;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .ss__dot {
+    width: 18px;
+    height: 2px;
+    background: rgba(241, 241, 241, 0.25);
+    border-radius: 1px;
+    transition: width 320ms ease, background 320ms ease;
+  }
+  .ss__dot.is-active {
+    width: 42px;
+    background: rgba(255, 255, 255, 0.95);
+  }
+</style>

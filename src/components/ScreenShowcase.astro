@@ -1,0 +1,290 @@
+---
+// http://sketchfab.com/3d-models/10m-x-3m-wall-180-degree-curve-3daaee13cad0406188fd74dc021a17fd
+//https://theatrixx.com/wp-content/uploads/2019/11/theatrixx-AV_STUMPFL-VIDEO-FULLWHITE_CURVE-slider-1920x1080-SCREEN_FRONT.jpg
+//https://www.shutterstock.com/image-vector/show-on-stage-projection-screen-vector-1204029151?trackingId=5b08e26f-8e49-4dde-bb12-6ab56855a572&listId=searchResults
+//https://www.shutterstock.com/image-illustration/event-round-stage-big-led-screen-2400408195?trackingId=aed788ff-c554-4899-a310-cfeaefae267d&listId=searchResults
+//https://www.shutterstock.com/image-illustration/curved-led-screen-stage-speaker-side-2686029223?trackingId=3060474d-91c4-4f90-ab2c-36419d31c74c&listId=searchResults
+const gridMedia = [
+  { src: "/coldplay.jpg", type: "image" },
+  { src: "/martin-garrix.mp4", type: "video" },
+  { src: "/anjunadeep.jpg", type: "image" },
+  { src: "/korolova.mp4", type: "video" },
+  { src: "/BenBohmer.jpg", type: "image" },
+  { src: "/klang-preview-3.jpg", type: "image" },
+  { src: "/Fisher.jpg", type: "image" },
+  { src: "/bryan-adams.png", type: "image" },
+  { src: "/klang-preview-2.jpg", type: "image" },
+];
+
+const entryVectors = [
+  { x: -160, y: -120 },
+  { x: 0, y: -180 },
+  { x: 160, y: -120 },
+  { x: -200, y: 0 },
+  { x: 0, y: 220 },
+  { x: 200, y: 0 },
+  { x: -150, y: 150 },
+  { x: 0, y: 180 },
+  { x: 150, y: 150 },
+];
+
+const middleMedia = gridMedia[4];
+---
+
+<!--
+  The section acts as a 300vh scroll-track.
+  A position:fixed panel (immune to flex/overflow-x:hidden ancestors) mounts
+  on top of the viewport and is shown only while this section is being scrolled.
+-->
+<section class="screen-showcase relative h-[300vh] w-full bg-[#0a0a0a]"></section>
+
+<!-- Fixed panel lives OUTSIDE the section so ancestor styles can't affect it -->
+<div class="screen-showcase-panel">
+  <div class="screen-showcase-grid">
+    {
+      gridMedia.map((media, index) => (
+        <div
+          class="screen-showcase-cell"
+          data-from-x={entryVectors[index].x}
+          data-from-y={entryVectors[index].y}
+        >
+          {media.type === "video" ? (
+            <video
+              src={media.src}
+              class="h-full w-full object-cover"
+              muted
+              loop
+              autoplay
+              playsinline
+            ></video>
+          ) : (
+            <img
+              src={media.src}
+              alt=""
+              class="h-full w-full object-cover"
+              loading="lazy"
+            />
+          )}
+        </div>
+      ))
+    }
+  </div>
+
+  <!-- Hero overlay: middle image, starts fullscreen and shrinks to cell position -->
+  <div class="showcase-hero-overlay">
+    {
+      middleMedia.type === "video" ? (
+        <video
+          src={middleMedia.src}
+          class="h-full w-full object-cover"
+          muted
+          loop
+          autoplay
+          playsinline
+        ></video>
+      ) : (
+        <img
+          src={middleMedia.src}
+          alt=""
+          class="h-full w-full object-cover"
+        />
+      )
+    }
+  </div>
+</div>
+
+<script>
+  function initScrollShowcase() {
+    const section    = document.querySelector<HTMLElement>(".screen-showcase");
+    const panel      = document.querySelector<HTMLElement>(".screen-showcase-panel");
+    const heroOverlay = panel?.querySelector<HTMLElement>(".showcase-hero-overlay");
+    const cells      = [...(panel?.querySelectorAll<HTMLElement>(".screen-showcase-cell") ?? [])];
+
+    if (!section || !panel || !heroOverlay || cells.length === 0) return;
+
+    const sec     = section!;
+    const pane    = panel!;
+    const overlay = heroOverlay!;
+
+    // ── pure-math helpers ────────────────────────────────────────────────────
+    const clamp          = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+    const lerp           = (a: number, b: number, t: number)   => a + (b - a) * t;
+    const easeInOutQuart = (t: number) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+    const easeOutExpo    = (t: number) => t >= 1   ? 1 : 1 - Math.pow(2, -10 * t);
+
+    // ── layout cache — only updated on resize, never inside render() ─────────
+    let vw = 0, vh = 0;
+    let cellL = 0, cellT = 0, cellW = 0, cellH = 0;
+    let sectionTop = 0, sectionH = 0;
+
+    function measure() {
+      vw = window.innerWidth;
+      vh = window.innerHeight;
+      const rem  = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const gridW = Math.min(0.72 * vw, 54 * rem);
+      const gridH = Math.min(0.56 * vh, 34 * rem);
+      cellW = gridW / 3;
+      cellH = gridH / 3;
+      cellL = (vw - gridW) / 2 + cellW;
+      cellT = (vh - gridH) / 2 + cellH;
+
+      let el: HTMLElement | null = sec;
+      let top = 0;
+      while (el) { top += el.offsetTop; el = el.offsetParent as HTMLElement | null; }
+      sectionTop = top;
+      sectionH   = sec.offsetHeight;
+    }
+
+    // ── pre-cache per-cell entry vectors (avoids parseFloat in hot path) ─────
+    const vectors = cells.map(c => ({
+      fx: parseFloat(c.dataset.fromX ?? "0"),
+      fy: parseFloat(c.dataset.fromY ?? "0"),
+    }));
+
+    // ── overlay: use transform instead of top/left/width/height ─────────────
+    // transform: translate(tx,ty) scale(sx,sy) with transform-origin:top left
+    // is purely GPU-composited — zero layout recalculation per frame.
+    overlay.style.transformOrigin = "top left";
+
+    // ── initial cell states ──────────────────────────────────────────────────
+    cells.forEach((cell, i) => {
+      cell.style.opacity   = "0";
+      if (i !== 4) {
+        cell.style.transform = `translate3d(${vectors[i].fx}px,${vectors[i].fy}px,0) scale(0.92)`;
+      }
+    });
+
+    // ── smooth RAF loop ──────────────────────────────────────────────────────
+    let targetRaw = 0, smoothRaw = 0, looping = false;
+    const SMOOTH_K = 0.10;
+
+    function render() {
+      const scrolled   = window.scrollY;
+      const zoneEnd    = sectionTop + sectionH - vh;
+      const exitOffset = Math.max(0, scrolled - zoneEnd);
+      const inZone     = scrolled >= sectionTop && scrolled <= zoneEnd;
+      const settling   = Math.abs(targetRaw - smoothRaw) > 0.0005;
+      const inExit     = exitOffset > 0 && exitOffset < vh;
+
+      const visible = inZone || settling || inExit;
+      pane.style.visibility = visible ? "visible" : "hidden";
+      if (!visible) { pane.style.transform = ""; return; }
+
+      // Slide panel up naturally once the scroll zone ends
+      pane.style.transform = inExit ? `translateY(${-exitOffset}px)` : "";
+
+      const p1 = easeInOutQuart(clamp(smoothRaw / 0.55, 0, 1));
+
+      // Overlay shrinks from fullscreen → middle-cell rect via GPU transform only
+      const sx = lerp(1, cellW / vw, p1);
+      const sy = lerp(1, cellH / vh, p1);
+      const tx = lerp(0, cellL, p1);
+      const ty = lerp(0, cellT, p1);
+      overlay.style.transform     = `translate(${tx}px,${ty}px) scale(${sx},${sy})`;
+      // Compensate border-radius for scale so the visual radius stays 0→4 px
+      const vr = lerp(0, 4, p1);
+      overlay.style.borderRadius  = `${vr / sx}px / ${vr / sy}px`;
+
+      cells[4].style.opacity = p1 >= 0.99 ? "1" : "0";
+
+      cells.forEach((cell, i) => {
+        if (i === 4) return;
+        const staggerIdx = i < 4 ? i : i - 1;
+        const offset  = staggerIdx * 0.028;
+        const localT  = easeOutExpo(clamp((p1 - 0.14 - offset) / 0.68, 0, 1));
+        const { fx, fy } = vectors[i];
+        cell.style.opacity   = String(localT);
+        cell.style.transform = `translate3d(${lerp(fx, 0, localT)}px,${lerp(fy, 0, localT)}px,0) scale(${lerp(0.88, 1, localT)})`;
+      });
+    }
+
+    function loop() {
+      smoothRaw += (targetRaw - smoothRaw) * SMOOTH_K;
+      render();
+      if (Math.abs(targetRaw - smoothRaw) > 0.0002) {
+        requestAnimationFrame(loop);
+      } else {
+        smoothRaw = targetRaw;
+        render();
+        looping = false;
+      }
+    }
+
+    function onScroll() {
+      targetRaw = clamp((window.scrollY - sectionTop) / (sectionH - vh), 0, 1);
+      if (!looping) { looping = true; requestAnimationFrame(loop); }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", () => { measure(); onScroll(); });
+
+    requestAnimationFrame(() => { measure(); onScroll(); });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initScrollShowcase, { once: true });
+  } else {
+    initScrollShowcase();
+  }
+</script>
+
+<style>
+  /* ── Fixed panel: immune to flex/overflow-x:hidden on ancestors ─────────── */
+  .screen-showcase-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #0a0a0a;
+    z-index: 50;
+    /* Hidden by default; JS reveals it only while the section is active */
+    visibility: hidden;
+  }
+
+  /* ── 3×3 grid ────────────────────────────────────────────────────────────── */
+  .screen-showcase-grid {
+    width: min(72vw, 54rem);
+    height: min(56vh, 34rem);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .screen-showcase-cell {
+    overflow: hidden;
+    background: rgba(30, 30, 30, 1);
+    will-change: transform, opacity;
+  }
+
+  /* ── Hero overlay: JS drives via transform only (no layout recalculation) ── */
+  .showcase-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    overflow: hidden;
+    border-radius: 0;
+    will-change: transform;
+  }
+
+  .showcase-hero-overlay img,
+  .showcase-hero-overlay video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+</style>
