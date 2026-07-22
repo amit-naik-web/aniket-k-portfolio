@@ -229,19 +229,10 @@ import Layout from '../layouts/Layout.astro';
     width: 100%;
     height: 100%;
     display: block;
-    transform: scale(1) translateZ(0);
-    transform-origin: center center;
-    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    -webkit-font-smoothing: subpixel-antialiased;
     image-rendering: auto;
-  }
-
-  #galleryCanvas.dragging {
-    transform: scale(0.94) translateZ(0);
-    transition: transform 0.85s cubic-bezier(0.33, 1, 0.68, 1);
-    will-change: transform;
   }
 
   body.dragging .canvas-container {
@@ -729,28 +720,17 @@ import Layout from '../layouts/Layout.astro';
       }
 
       // Canvas setup - optimized for smooth rendering
-      const ctx = canvas.getContext("2d", { 
-        alpha: false,
-        desynchronized: true,
-        willReadFrequently: false
-      });
+      const ctx = canvas.getContext("2d", { alpha: false });
 
       if (!ctx) {
         console.error("Could not get canvas context");
         return;
       }
 
-      // Set image smoothing for better quality during transforms
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-      
-      // Function to adjust rendering quality based on interaction
-      function setRenderingQuality(highQuality: boolean) {
-        if (!ctx) return;
-        ctx.imageSmoothingQuality = highQuality ? "high" : "low";
-      }
 
-      // Set canvas size to match viewport
+      // Set canvas size to match viewport (setTransform avoids cumulative scale on resize)
       function resizeCanvas() {
         if (!ctx) return;
         const dpr = window.devicePixelRatio || 1;
@@ -758,7 +738,7 @@ import Layout from '../layouts/Layout.astro';
         canvas.height = window.innerHeight * dpr;
         canvas.style.width = `${window.innerWidth}px`;
         canvas.style.height = `${window.innerHeight}px`;
-        ctx.scale(dpr, dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
       resizeCanvas();
@@ -869,14 +849,14 @@ import Layout from '../layouts/Layout.astro';
       }
 
       // ============================================
-      // CUSTOM CURSOR - Ultra-Premium Delayed Feel (Optimized)
+      // CUSTOM CURSOR - Delayed follow (driven by main loop)
       // ============================================
       
       let cursorX = 0;
       let cursorY = 0;
       let targetCursorX = 0;
       let targetCursorY = 0;
-      const cursorSpeed = 0.05;  // Even slower follow (was 0.08)
+      const CURSOR_EASE_RATE = 5; // Slower, heavier follow
       let cursorNeedsUpdate = false;
 
       if (customCursor) {
@@ -890,27 +870,25 @@ import Layout from '../layouts/Layout.astro';
         document.addEventListener('mouseleave', () => {
           customCursor.classList.remove('active');
         });
+      }
 
-        function animateCursor() {
-          if (cursorNeedsUpdate) {
-            const dx = targetCursorX - cursorX;
-            const dy = targetCursorY - cursorY;
-            
-            // Only update if there's significant movement
-            if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-              cursorX += dx * cursorSpeed;
-              cursorY += dy * cursorSpeed;
-              
-              customCursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
-            } else {
-              cursorNeedsUpdate = false;
-            }
-          }
-          
-          requestAnimationFrame(animateCursor);
+      function updateCursor(dt: number) {
+        if (!customCursor || !cursorNeedsUpdate) return;
+
+        const t = 1 - Math.exp(-CURSOR_EASE_RATE * dt);
+        const dx = targetCursorX - cursorX;
+        const dy = targetCursorY - cursorY;
+
+        if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
+          cursorX += dx * t;
+          cursorY += dy * t;
+          customCursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+        } else {
+          cursorX = targetCursorX;
+          cursorY = targetCursorY;
+          customCursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+          cursorNeedsUpdate = false;
         }
-        
-        animateCursor();
       }
 
       // ============================================
@@ -929,12 +907,13 @@ import Layout from '../layouts/Layout.astro';
       const COLUMNS = 5;
       const ROWS_PER_SCREEN = 4;
 
-      // Physics settings - Ultra-premium delayed feel
-      const DRAG_EASE = 0.0237;             // 18% slower response (was 0.028)
-      const VELOCITY_DAMPING = 0.975;       // More float, less friction
-      const DRAG_MULTIPLIER = 0.7;          // More resistance for weighted feel
-      const MOMENTUM_FACTOR = isMobile ? 180 : 299;  // 15% more momentum (was 260)
-      const MIN_VELOCITY = 0.003;           // Lower threshold for longer animation
+      // Physics settings - slow, heavy, short-travel premium feel
+      const DRAG_EASE_RATE = 2.1;           // Slower catch-up (heavier lag)
+      const VELOCITY_DAMP_RATE = 5.5;       // Quicker coast die-off (travels less)
+      const DRAG_MULTIPLIER = 0.52;         // Slightly more travel while dragging
+      const SWIPE_VELOCITY_SCALE = 0.42;   // Keep swipe coast speed/distance unchanged
+      const VELOCITY_INTEGRATION = 520;     // Shorter momentum coast
+      const MIN_VELOCITY = 0.015;           // Stop threshold (px/ms)
 
       // ============================================
       // STATE MANAGEMENT
@@ -952,7 +931,7 @@ import Layout from '../layouts/Layout.astro';
       let isDragging = false;
       let dragStartX = 0;
       let dragStartY = 0;
-      let lastDragTime = Date.now();
+      let lastDragTime = performance.now();
       let mouseHasMoved = false;
 
       // Expansion state
@@ -961,10 +940,8 @@ import Layout from '../layouts/Layout.astro';
       let titleSplit: any = null;
 
       // Performance tracking
-      let lastRenderTime = 0;
-      const targetFPS = 60;
-      const frameTime = 1000 / targetFPS;
-      let isDirty = true; // Track if canvas needs redraw
+      let lastFrameTime = 0;
+      let isDirty = true;
       let lastOffsetX = 0;
       let lastOffsetY = 0;
       
@@ -1133,53 +1110,38 @@ import Layout from '../layouts/Layout.astro';
       function renderCanvas() {
         if (!ctx) return;
 
-        // Clear canvas efficiently
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-        // Get visible items
         const visibleItems = getVisibleItems();
 
-        // Dynamic quality: reduce shadows during fast movement
-        const isMovingFast = isDragging || Math.abs(velocityX) > 0.5 || Math.abs(velocityY) > 0.5;
-        
-        if (isMovingFast) {
-          // No shadow during fast movement for better performance
-          ctx.shadowColor = "transparent";
-          ctx.shadowBlur = 0;
-        } else {
-          // Full quality when still or slow movement
-          ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-          ctx.shadowBlur = 20;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 10;
-        }
+        // No canvas shadows — expensive and a common frame-drop source
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
 
-        // Render each visible item
         for (const item of visibleItems) {
           const imgData = imageData[item.imageIndex];
           
-          // Skip if image not loaded
           if (!imgData || !imgData.img || !imgData.img.complete) continue;
 
-          // Center image in cell if it's smaller than cell size
-          const offsetX = (ITEM_WIDTH - imgData.width) / 2;
-          const offsetY = (ITEM_HEIGHT - imgData.height) / 2;
+          // Center image in cell; keep sub-pixel positions for smooth pan
+          const cellOffsetX = (ITEM_WIDTH - imgData.width) / 2;
+          const cellOffsetY = (ITEM_HEIGHT - imgData.height) / 2;
+          const x = item.screenX + cellOffsetX;
+          const y = item.screenY + cellOffsetY;
 
-          // Calculate integer pixel positions to prevent sub-pixel rendering
-          const x = Math.round(item.screenX + offsetX);
-          const y = Math.round(item.screenY + offsetY);
-          const w = imgData.width;
-          const h = imgData.height;
-
-          // Draw image at its natural aspect ratio
-          ctx.drawImage(imgData.img, x, y, w, h);
+          ctx.drawImage(imgData.img, x, y, imgData.width, imgData.height);
         }
 
-        // Only draw borders when not moving fast
-        if (!isMovingFast) {
-          ctx.shadowColor = "transparent";
-          ctx.shadowBlur = 0;
+        // Subtle borders only when settled (no drag / no coast velocity)
+        const isMoving =
+          isDragging ||
+          Math.abs(velocityX) > MIN_VELOCITY ||
+          Math.abs(velocityY) > MIN_VELOCITY ||
+          Math.abs(targetOffsetX - offsetX) > 0.5 ||
+          Math.abs(targetOffsetY - offsetY) > 0.5;
+
+        if (!isMoving) {
           ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
           ctx.lineWidth = 1;
 
@@ -1187,10 +1149,10 @@ import Layout from '../layouts/Layout.astro';
             const imgData = imageData[item.imageIndex];
             if (!imgData || !imgData.img || !imgData.img.complete) continue;
 
-            const offsetX = (ITEM_WIDTH - imgData.width) / 2;
-            const offsetY = (ITEM_HEIGHT - imgData.height) / 2;
-            const x = Math.round(item.screenX + offsetX);
-            const y = Math.round(item.screenY + offsetY);
+            const cellOffsetX = (ITEM_WIDTH - imgData.width) / 2;
+            const cellOffsetY = (ITEM_HEIGHT - imgData.height) / 2;
+            const x = item.screenX + cellOffsetX;
+            const y = item.screenY + cellOffsetY;
 
             ctx.strokeRect(x, y, imgData.width, imgData.height);
           }
@@ -1319,56 +1281,74 @@ import Layout from '../layouts/Layout.astro';
       // ANIMATION LOOP - SMOOTH PHYSICS
       // ============================================
       
-      function updatePhysics() {
+      function updatePhysics(dt: number) {
         if (isExpanded) return false;
 
-        // Smooth easing towards target
-        const deltaX = (targetOffsetX - offsetX) * DRAG_EASE;
-        const deltaY = (targetOffsetY - offsetY) * DRAG_EASE;
-        
-        // Check if there's significant change
-        const hasChanged = Math.abs(deltaX) > 0.01 || Math.abs(deltaY) > 0.01 || 
-                          Math.abs(velocityX) > MIN_VELOCITY || Math.abs(velocityY) > MIN_VELOCITY;
-        
-        if (hasChanged) {
-          offsetX += deltaX;
-          offsetY += deltaY;
-          
-          // Apply momentum when not dragging
-          if (!isDragging) {
-            velocityX *= VELOCITY_DAMPING;
-            velocityY *= VELOCITY_DAMPING;
-            
-            // Stop very small velocities
+        // Integrate velocity into target while coasting
+        if (!isDragging) {
+          if (Math.abs(velocityX) > MIN_VELOCITY || Math.abs(velocityY) > MIN_VELOCITY) {
+            targetOffsetX += velocityX * VELOCITY_INTEGRATION * dt;
+            targetOffsetY += velocityY * VELOCITY_INTEGRATION * dt;
+
+            const damp = Math.exp(-VELOCITY_DAMP_RATE * dt);
+            velocityX *= damp;
+            velocityY *= damp;
+
             if (Math.abs(velocityX) < MIN_VELOCITY && Math.abs(velocityY) < MIN_VELOCITY) {
               velocityX = 0;
               velocityY = 0;
             }
           }
         }
-        
+
+        // Frame-rate independent exponential easing toward target
+        const t = 1 - Math.exp(-DRAG_EASE_RATE * dt);
+        const deltaX = (targetOffsetX - offsetX) * t;
+        const deltaY = (targetOffsetY - offsetY) * t;
+
+        const hasChanged =
+          Math.abs(deltaX) > 0.01 ||
+          Math.abs(deltaY) > 0.01 ||
+          Math.abs(velocityX) > MIN_VELOCITY ||
+          Math.abs(velocityY) > MIN_VELOCITY ||
+          Math.abs(targetOffsetX - offsetX) > 0.01 ||
+          Math.abs(targetOffsetY - offsetY) > 0.01;
+
+        if (hasChanged) {
+          offsetX += deltaX;
+          offsetY += deltaY;
+
+          // Snap when extremely close to avoid endless micro-updates
+          if (
+            Math.abs(targetOffsetX - offsetX) < 0.01 &&
+            Math.abs(targetOffsetY - offsetY) < 0.01 &&
+            Math.abs(velocityX) <= MIN_VELOCITY &&
+            Math.abs(velocityY) <= MIN_VELOCITY
+          ) {
+            offsetX = targetOffsetX;
+            offsetY = targetOffsetY;
+          }
+        }
+
         return hasChanged;
       }
 
       function animate(currentTime: number) {
         requestAnimationFrame(animate);
-        
-        // Throttle to target FPS
-        if (currentTime - lastRenderTime < frameTime) {
-          return;
-        }
-        
-        lastRenderTime = currentTime;
 
-        // Update physics and check if anything changed
-        const physicsChanged = updatePhysics();
-        
-        // Only render if something changed or marked dirty
+        if (!lastFrameTime) lastFrameTime = currentTime;
+        const dt = Math.min((currentTime - lastFrameTime) / 1000, 0.05);
+        lastFrameTime = currentTime;
+
+        updateCursor(dt);
+
+        const physicsChanged = updatePhysics(dt);
+
         if (!isExpanded && (physicsChanged || isDirty)) {
-          // Check if offset actually changed enough to warrant a redraw
-          const offsetChanged = Math.abs(offsetX - lastOffsetX) > 0.1 || 
-                               Math.abs(offsetY - lastOffsetY) > 0.1;
-          
+          const offsetChanged =
+            Math.abs(offsetX - lastOffsetX) > 0.01 ||
+            Math.abs(offsetY - lastOffsetY) > 0.01;
+
           if (offsetChanged || isDirty) {
             renderCanvas();
             lastOffsetX = offsetX;
@@ -1382,18 +1362,29 @@ import Layout from '../layouts/Layout.astro';
       // DRAG INTERACTION HANDLERS
       // ============================================
       
+      function clientToCanvas(clientX: number, clientY: number) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      }
+
       function startDrag(clientX: number, clientY: number) {
         if (isExpanded) return;
+
+        // Pan only when the gesture begins on an image
+        const pos = clientToCanvas(clientX, clientY);
+        if (!getItemAtPosition(pos.x, pos.y)) return;
         
         isDragging = true;
         mouseHasMoved = false;
         dragStartX = clientX;
         dragStartY = clientY;
-        lastDragTime = Date.now();
+        lastDragTime = performance.now();
+        velocityX = 0;
+        velocityY = 0;
         isDirty = true;
-        
-        // Reduce rendering quality during drag for better performance
-        setRenderingQuality(false);
         
         // Clear hover state during drag
         if (isHoveringClickable) {
@@ -1404,7 +1395,6 @@ import Layout from '../layouts/Layout.astro';
         
         hideScrollHint();
         document.body.classList.add("dragging");
-        canvas.classList.add("dragging");
         if (customCursor) customCursor.classList.add('grabbing');
       }
 
@@ -1414,26 +1404,24 @@ import Layout from '../layouts/Layout.astro';
         const dx = clientX - dragStartX;
         const dy = clientY - dragStartY;
         
-        // Early return if no significant movement
         if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return;
         
         if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           mouseHasMoved = true;
         }
         
-        // Calculate velocity for momentum
-        const now = Date.now();
-        const dt = Math.max(10, now - lastDragTime);
+        // Velocity uses prior scale so swipe coast travel/speed stays the same
+        const now = performance.now();
+        const dt = Math.max(8, now - lastDragTime);
         lastDragTime = now;
         
-        const newVelX = dx / dt;
-        const newVelY = dy / dt;
+        const newVelX = (dx * SWIPE_VELOCITY_SCALE) / dt;
+        const newVelY = (dy * SWIPE_VELOCITY_SCALE) / dt;
         
-        // Smooth velocity with blending
-        velocityX = velocityX * 0.7 + newVelX * 0.3;
-        velocityY = velocityY * 0.7 + newVelY * 0.3;
+        // Heavier velocity blend — less snappy flick response
+        velocityX = velocityX * 0.78 + newVelX * 0.22;
+        velocityY = velocityY * 0.78 + newVelY * 0.22;
         
-        // Update target position
         targetOffsetX += dx * DRAG_MULTIPLIER;
         targetOffsetY += dy * DRAG_MULTIPLIER;
         
@@ -1447,20 +1435,14 @@ import Layout from '../layouts/Layout.astro';
         
         isDragging = false;
         document.body.classList.remove("dragging");
-        canvas.classList.remove("dragging");
         if (customCursor) customCursor.classList.remove('grabbing');
         
-        // Restore high quality rendering after drag
-        setRenderingQuality(true);
-        
-        if (applyMomentum && (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1)) {
-          // Apply momentum
-          targetOffsetX += velocityX * MOMENTUM_FACTOR;
-          targetOffsetY += velocityY * MOMENTUM_FACTOR;
-          isDirty = true;
-        } else {
+        // Continuous velocity integration handles coast; clamp tiny velocities
+        if (!applyMomentum || (Math.abs(velocityX) <= MIN_VELOCITY && Math.abs(velocityY) <= MIN_VELOCITY)) {
           velocityX = 0;
           velocityY = 0;
+        } else {
+          isDirty = true;
         }
       }
 
@@ -1543,12 +1525,16 @@ import Layout from '../layouts/Layout.astro';
       // Touch events
       canvas.addEventListener("touchstart", (e) => {
         if (isExpanded || e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const pos = clientToCanvas(touch.clientX, touch.clientY);
+        // Only claim the gesture when starting on an image
+        if (!getItemAtPosition(pos.x, pos.y)) return;
         e.preventDefault();
-        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+        startDrag(touch.clientX, touch.clientY);
       }, { passive: false });
 
       canvas.addEventListener("touchmove", (e) => {
-        if (isExpanded || e.touches.length === 0) return;
+        if (!isDragging || isExpanded || e.touches.length === 0) return;
         e.preventDefault();
         updateDrag(e.touches[0].clientX, e.touches[0].clientY);
       }, { passive: false });
@@ -1567,8 +1553,8 @@ import Layout from '../layouts/Layout.astro';
       // SCROLL WHEEL INTERACTION - Ultra-Premium Feel
       // ============================================
       
-      const WHEEL_MULTIPLIER = isMobile ? 0.6 : 0.783;  // 15% slower (was 0.9)
-      const WHEEL_MOMENTUM = 0.198;                     // 10% more momentum (was 0.18)
+      const WHEEL_MULTIPLIER = isMobile ? 0.35 : 0.45;
+      const WHEEL_MOMENTUM = 0.00045; // Soft, short wheel coast
       
       canvas.addEventListener("wheel", (e) => {
         if (isExpanded) return;
@@ -1577,14 +1563,12 @@ import Layout from '../layouts/Layout.astro';
         
         hideScrollHint();
         
-        // Apply scroll delta to target position with premium easing
-        // Negative because wheel deltaY is opposite to intended movement
         targetOffsetX -= e.deltaX * WHEEL_MULTIPLIER;
         targetOffsetY -= e.deltaY * WHEEL_MULTIPLIER;
         
-        // Add smooth momentum effect for premium feel
-        velocityX = -e.deltaX * WHEEL_MOMENTUM;
-        velocityY = -e.deltaY * WHEEL_MOMENTUM;
+        // Soft velocity impulse — coast via continuous integration
+        velocityX += -e.deltaX * WHEEL_MOMENTUM;
+        velocityY += -e.deltaY * WHEEL_MOMENTUM;
         
         isDirty = true;
       }, { passive: false });
@@ -1623,7 +1607,7 @@ import Layout from '../layouts/Layout.astro';
         
         console.log("✅ Canvas Gallery initialized!");
         console.log("✨ Features: Canvas Rendering • Infinite Grid • Smooth Drag • Momentum Physics • Click to Expand");
-        console.log("🚀 Performance: Dirty Flag System • RAF Throttling • Dynamic Quality • Cached Calculations");
+        console.log("🚀 Performance: Delta-time Physics • Dirty Flag • Sub-pixel Draw • Cached Grid");
       }
 
       // Start the app
