@@ -5,21 +5,20 @@ import "../styles/global.css";
 // import LatestWorkShowCase from "../components/latestWorkShowCase.astro";
 import ScreenShowcase from "../components/ScreenShowcase1.astro";
 import PreviewListShowCase from "../components/previewListShowCase3.astro";
-import ReviewSection from "../components/reviewSection.astro";
 import ReviewSection1 from "../components/reviewSection1.astro";
 // import ModelViewer1 from "../components/ModelViewer1.astro";
 import ModelViewer2 from "../components/ModelViewer2.astro";
 import Hero3 from "../components/hero3.astro";
+// import Hero4 from "../components/Hero4.astro";
 import CTA from "../components/CTA.astro";
-import PhotoballHero from "../components/PhotoballHero.astro";
-
+// import PhotoballHero from "../components/PhotoballHero.astro";
 ---
 
 <Layout title="01byte10">
   <!-- Hero Section -->
   <!-- <video
     class="w-full h-[100vh] object-cover"
-    src="/korolova.mp41"
+    src="/korolova.mp4"
     autoplay
     muted
     loop
@@ -28,13 +27,14 @@ import PhotoballHero from "../components/PhotoballHero.astro";
     Your browser does not support the video tag.
   </video> -->
   <!-- <PhotoballHero /> -->
+  <!-- <Hero4 /> -->
   <Hero3 />
 
   <!-- <div class="h-[100vh] w-full"></div> -->
-  <!-- CLients ribbon -->
+  <!-- Clients ribbon -->
   <!-- public/clients -->
 
-  <!-- ABout Us Section -->
+  <!-- About Us Section -->
   <!-- https://codepen.io/msharma14/pen/bNGBaGE -->
 
   <!-- 3D Model Showcase Section with About Overlay -->
@@ -55,7 +55,6 @@ import PhotoballHero from "../components/PhotoballHero.astro";
   <ScreenShowcase />
   <div class="h-[30vh] w-full"></div>
 
-
   <!-- Preview List Section -->
   <div class="h-[100vh] w-full"></div>
   <PreviewListShowCase />
@@ -65,8 +64,8 @@ import PhotoballHero from "../components/PhotoballHero.astro";
 
   <!-- Split Screen Overlay - Zoom out effect revealing background -->
   <!-- <SplitScreenOverlay /> -->
-   
-  <!-- Review Section -->  
+
+  <!-- Review Section -->
   <div class="h-[40vh] w-full"></div>
 
   <!-- Noomo-style scroll review section -->
@@ -81,9 +80,10 @@ import PhotoballHero from "../components/PhotoballHero.astro";
     margin: 0;
     padding: 0;
   }
-  
+
   html {
     overflow-x: hidden;
+    scroll-behavior: smooth;
   }
 
   /* Hero Section Animations */
@@ -117,11 +117,6 @@ import PhotoballHero from "../components/PhotoballHero.astro";
 
   section:hover video {
     transform: scale(1.05);
-  }
-
-  /* Smooth scroll behavior */
-  html {
-    scroll-behavior: smooth;
   }
 
   /* See-through text effect - video shows through the text */
