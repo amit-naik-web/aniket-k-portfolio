@@ -201,6 +201,7 @@ const {
       let currentTranslateX = 0;
       let currentSectionProgress = 0;
       let targetSectionProgress = 0;
+      let pinOffsetY = 0;
       const leftTextWindowStartIndex = 15;
       const leftTextWindowEndIndex = 23;
       // Initial pose is driven by the LAST element of modelPositions
@@ -214,7 +215,7 @@ const {
       
       function applyContainerTransform() {
         if (modelContainer) {
-          modelContainer.style.transform = `translate3d(${currentTranslateX}vw, 0, 0) scale(${currentScale})`;
+          modelContainer.style.transform = `translate3d(${currentTranslateX}vw, ${pinOffsetY}px, 0) scale(${currentScale})`;
         }
       }
       
@@ -762,12 +763,20 @@ const {
         // Reverse playback so scroll-down goes from end keyframes to start keyframes.
         const newScrollProgress = 1 - animationProgress;
         
-        // Show model only while this section is in viewport.
-        const sectionBottom = sectionTopAbsolute + sectionHeight;
-        const isInView = scrollTop >= sectionTopAbsolute && scrollTop <= sectionBottom;
+        // Ride with the section so it scrolls up under Hero3, then pins, then unpins at the end.
+        if (sectionRect.top > 0) {
+          pinOffsetY = sectionRect.top;
+        } else if (sectionRect.bottom < viewportHeight) {
+          pinOffsetY = sectionRect.bottom - viewportHeight;
+        } else {
+          pinOffsetY = 0;
+        }
+
+        const isInView = sectionRect.bottom > 0 && sectionRect.top < viewportHeight;
 
         if (modelContainer) {
           modelContainer.classList.toggle('is-active', isInView);
+          applyContainerTransform();
         }
         if (!isInView && keyframeTextBlock) {
           keyframeTextBlock.classList.remove('is-visible');
@@ -782,6 +791,7 @@ const {
             totalScrollDistance,
             sectionProgress: (sectionProgress * 100).toFixed(2) + '%',
             modelAnimProgress: (newScrollProgress * 100).toFixed(2) + '%',
+            pinOffsetY,
             isInView
           });
         }
@@ -963,12 +973,17 @@ const {
       smoothedSectionProgress += delta * smoothingFactor;
 
       if (isSectionInView) {
+        // Keep overlay interactive for floating images, but fade the veil in with scroll
+        // so the section doesn't slam to an opaque black backdrop on entry.
+        const veilOpacity = Math.min(Math.max((smoothedSectionProgress - 0.08) / 0.22, 0), 1);
         aboutContent.style.zIndex = '50';
         aboutContent.style.opacity = '1';
+        aboutContent.style.setProperty('--about-veil-opacity', veilOpacity.toFixed(3));
         renderFloatingImages(smoothedSectionProgress);
       } else {
         aboutContent.style.zIndex = '-1';
         aboutContent.style.opacity = '0';
+        aboutContent.style.setProperty('--about-veil-opacity', '0');
         resetFloatingImages();
       }
 
@@ -991,16 +1006,26 @@ const {
       const viewportHeight = window.innerHeight;
       
       // Get the absolute position of the section from the document top
-      const sectionTopAbsolute = modelSection.offsetTop;
+      const sectionRect = modelSection.getBoundingClientRect();
+      const sectionTopAbsolute = scrollTop + sectionRect.top;
       const sectionHeight = modelSection.offsetHeight; // 400vh
       
-      const sectionBottom = sectionTopAbsolute + sectionHeight;
       const totalScrollable = Math.max(sectionHeight - viewportHeight, 1);
       const sectionProgress = Math.min(Math.max((scrollTop - sectionTopAbsolute) / totalScrollable, 0), 1);
       
-      // Show floating items for the full model section.
-      isSectionInView = scrollTop >= sectionTopAbsolute && scrollTop < sectionBottom;
+      // Visible while the section intersects the viewport (rides up under Hero3).
+      isSectionInView = sectionRect.bottom > 0 && sectionRect.top < viewportHeight;
       targetSectionProgress = sectionProgress;
+
+      // Keep about layer locked to the same pin offset as the model.
+      let aboutPinY = 0;
+      if (sectionRect.top > 0) {
+        aboutPinY = sectionRect.top;
+      } else if (sectionRect.bottom < viewportHeight) {
+        aboutPinY = sectionRect.bottom - viewportHeight;
+      }
+      aboutContent.style.transform = `translate3d(0, ${aboutPinY}px, 0)`;
+
       ensureSmoothLoop();
     }
     
@@ -1232,7 +1257,7 @@ const {
     z-index: -1;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.6s ease, z-index 0s;
+    will-change: transform, opacity;
   }
   
   .about-text {
@@ -1269,13 +1294,15 @@ const {
     }
   }
 
-  /* Very subtle backdrop blur effect */
+  /* Backdrop veil — opacity is scroll-driven via --about-veil-opacity */
   .about-content-container::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.2);
-    /* backdrop-filter: blur(0.8px); */
+    background: rgba(0, 0, 0, 0.35);
+    opacity: var(--about-veil-opacity, 0);
+    transition: opacity 0.35s ease;
+    pointer-events: none;
     z-index: -1;
   }
 
