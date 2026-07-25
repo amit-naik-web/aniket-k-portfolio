@@ -1,0 +1,177 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+
+const email = "01byte01.info@gmail.com";
+---
+
+<Layout title="Contact — 01byte10" description="Get in touch to start a project.">
+  <section class="contact-page" id="contact">
+    <div class="contact-inner">
+      <p class="contact-kicker">Contact</p>
+      <h1 class="contact-heading">Let's get in touch</h1>
+      <p class="contact-sub">
+        Tell me about your project. I usually reply within a couple of days.
+      </p>
+
+      <form class="contact-form" method="post" action={`mailto:${email}`} enctype="text/plain">
+        <label class="contact-field">
+          <span>Name</span>
+          <input type="text" name="name" autocomplete="name" required />
+        </label>
+        <label class="contact-field">
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" required />
+        </label>
+        <label class="contact-field">
+          <span>Message</span>
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <button type="submit" class="contact-submit">Send message</button>
+      </form>
+
+      <div class="contact-direct">
+        <a href={`mailto:${email}`}>{email}</a>
+        <a
+          href="https://wa.me/1234567890"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .contact-page {
+    --contact-ink: #f2f2f2;
+    --contact-muted: rgba(255, 255, 255, 0.5);
+    --contact-line: rgba(255, 255, 255, 0.12);
+    --contact-fill: rgba(255, 255, 255, 0.04);
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8rem 1.5rem 5rem;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 55%),
+      #1c1c1c;
+  }
+
+  .contact-inner {
+    width: 100%;
+    max-width: 32rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .contact-kicker {
+    margin: 0;
+    font-family: "REM", sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--contact-muted);
+  }
+
+  .contact-heading {
+    margin: 0;
+    font-family: "Red Hat Display", sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--contact-ink);
+  }
+
+  .contact-sub {
+    margin: 0 0 1.5rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--contact-muted);
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.85rem;
+    color: var(--contact-muted);
+  }
+
+  .contact-field input,
+  .contact-field textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--contact-ink);
+    background: var(--contact-fill);
+    border: 1px solid var(--contact-line);
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .contact-field input:focus,
+  .contact-field textarea:focus {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .contact-field textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+
+  .contact-submit {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    padding: 0.85rem 1.6rem;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1c1c1c;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .contact-submit:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  .contact-direct {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--contact-line);
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.9rem;
+  }
+
+  .contact-direct a {
+    color: var(--contact-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .contact-direct a:hover {
+    color: var(--contact-ink);
+  }
+</style>
