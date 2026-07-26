@@ -7,7 +7,7 @@ import ScreenShowcase from "../components/ScreenShowcase1.astro";
 import PreviewListShowCase from "../components/previewListShowCase3.astro";
 import ReviewSection1 from "../components/reviewSection1.astro";
 // import ModelViewer1 from "../components/ModelViewer1.astro";
-import ModelViewer2 from "../components/ModelViewer2.astro";
+import ModelViewer3 from "../components/ModelViewer3.astro";
 import Hero3 from "../components/hero3.astro";
 // import Hero4 from "../components/Hero4.astro";
 import CTA from "../components/CTA.astro";
@@ -28,14 +28,19 @@ import CTA from "../components/CTA.astro";
   </video> -->
   <!-- <PhotoballHero /> -->
   <!-- <Hero4 /> -->
-  <Hero3 />
-
-  <!-- Directly after Hero3 so the exit scroll and model rise cascade together -->
-  <ModelViewer2
-    modelPath="/models/source.glb"
-    width="100vw"
-    height="100vh"
-  />
+  <!-- Overlap stack: Hero3 on top scrolls away, revealing ModelViewer already behind -->
+  <div class="hero-model-overlap">
+    <div class="hero-model-overlap__front">
+      <Hero3 />
+    </div>
+    <div class="hero-model-overlap__behind">
+      <ModelViewer3
+        modelPath="/models/source.glb"
+        width="100vw"
+        height="100vh"
+      />
+    </div>
+  </div>
   <!-- <Works1 /> -->
   <!-- Latest Work/Feature Section -->
   <!-- <LatestWorkShowCase /> -->
@@ -72,6 +77,33 @@ import CTA from "../components/CTA.astro";
   html {
     overflow-x: clip;
     scroll-behavior: smooth;
+  }
+
+  /*
+    Hero / Model overlap:
+    Model sits under Hero3's last 100vh exit. Hero slides up over the model's
+    intro pose; ModelViewer3 holds animation until that reveal finishes.
+  */
+  .hero-model-overlap {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .hero-model-overlap__front {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-model-overlap__behind {
+    position: relative;
+    z-index: 1;
+    /* Tuck under Hero3 exit viewport — model is present at intro pose underneath */
+    margin-top: -100vh;
+  }
+
+  .hero-model-overlap__front :global(.hero-wrapper) {
+    /* Panels own the media; keep wrapper clear so the reveal isn't a black slab */
+    background: transparent;
   }
 
   /* Hero Section Animations */

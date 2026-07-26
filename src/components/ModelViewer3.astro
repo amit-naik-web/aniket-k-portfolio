@@ -90,7 +90,7 @@ const {
   </div>
   
   <!-- About content overlay - appears in second half of section -->
-  <div class="about-content-container" id="about-content" style="z-index: -1; opacity: 0;">
+  <!-- <div class="about-content-container" id="about-content" style="z-index: -1; opacity: 0;">
     <div class="floating-items-layer">
       <div class="floating-image floating-image-1" style="--translate-x: 120vw; --translate-y: 100vh; --scale: 0.3; --opacity: 0;">
         <img src="/coldplay.jpg" alt="Coldplay" />
@@ -110,7 +110,7 @@ const {
       <div class="floating-image floating-image-6" style="--translate-x: 120vw; --translate-y: 100vh; --scale: 0.3; --opacity: 0;">
         <img src="/klang.jpg" alt="Klang" />
       </div>
-    </div>
+    </div> -->
 
     <!-- <div class="about-text">
       <p class="text-lg md:text-3xl max-w-3xl px-8 leading-relaxed">
@@ -152,37 +152,38 @@ const {
       // Captured hold pose is repeated at the END so the model stays there initially.
       const modelPositions = [
         // Earlier frames (reached later in reversed playback)
-        { cameraOrbit: "0deg 75deg 35m",   fieldOfView: "45deg", scale: 0.70, translateXvw: -70 },
-        { cameraOrbit: "15deg 75deg 32m",  fieldOfView: "45deg", scale: 0.76, translateXvw: -40 },
-        { cameraOrbit: "30deg 75deg 29m",  fieldOfView: "45deg", scale: 0.83, translateXvw: -35 },
-        { cameraOrbit: "45deg 75deg 26m",  fieldOfView: "45deg", scale: 0.92, translateXvw: -30 },
-        { cameraOrbit: "60deg 75deg 23m",  fieldOfView: "45deg", scale: 1.03, translateXvw: -24 },
-        { cameraOrbit: "75deg 75deg 21m",  fieldOfView: "45deg", scale: 1.18, translateXvw: -17 },
-        { cameraOrbit: "90deg 75deg 10m",  fieldOfView: "70deg", scale: 1.35, translateXvw: -12},
-        { cameraOrbit: "122deg 14deg 15m", fieldOfView: "48.5deg", scale: 1.50, translateXvw: -10 },
+        // Exit left: push past -100vw so the full-bleed container clears the viewport
+        { cameraOrbit: "0deg 75deg 35m",   fieldOfView: "45deg", scale: 0.70, translateXvw: -130 },
+        { cameraOrbit: "15deg 75deg 32m",  fieldOfView: "45deg", scale: 0.76, translateXvw: -95 },
+        { cameraOrbit: "30deg 75deg 29m",  fieldOfView: "45deg", scale: 0.83, translateXvw: -70 },
+        { cameraOrbit: "45deg 75deg 26m",  fieldOfView: "45deg", scale: 0.92, translateXvw: -50 },
+        { cameraOrbit: "60deg 75deg 23m",  fieldOfView: "45deg", scale: 1.03, translateXvw: -36 },
+        { cameraOrbit: "75deg 75deg 21m",  fieldOfView: "45deg", scale: 1.18, translateXvw: -24 },
+        { cameraOrbit: "90deg 75deg 10m",  fieldOfView: "70deg", scale: 1.35, translateXvw: -16 },
+        { cameraOrbit: "122deg 14deg 15m", fieldOfView: "48.5deg", scale: 1.50, translateXvw: -12 },
         { cameraOrbit: "126deg 30deg 16m", fieldOfView: "47deg", scale: 1.62, translateXvw: -9 },
         { cameraOrbit: "129deg 44deg 16.5m", fieldOfView: "45.5deg", scale: 1.74, translateXvw: -6 },
         { cameraOrbit: "132deg 58deg 17m", fieldOfView: "44deg", scale: 1.86, translateXvw: -4 },
 
         // 2nd pose hold
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.85, translateXvw: -5 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.65, translateXvw: -5 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.65, translateXvw: 6 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 10 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.20, translateXvw: 18 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.00, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.20, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 18 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.60, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.80, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.80, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.80, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.60, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 22 },
         // { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.20, translateXvw: 22 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.20, translateXvw: 18 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 18 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.40, translateXvw: 10 },
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.65, translateXvw: 6 },
-        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.85, translateXvw: -1 },
+        { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.65, translateXvw: -1 },
 
         // Small exit from hold, then initial visible pose (last keyframe)
         { cameraOrbit: "129deg 44deg 16.5m", fieldOfView: "45.5deg", scale: 1.92, translateXvw: -2 },
@@ -748,13 +749,17 @@ const {
         const sectionTopAbsolute = scrollTop + sectionRect.top;
         const sectionHeight = scrollSection.offsetHeight;
         
-        // Calculate scroll progress within the 400vh section
-        // Model animation happens in first 200vh (0 to 0.5 of section)
-        // About overlay appears in second 200vh (0.5 to 1.0 of section)
+        // Section is 500vh: first 100vh = hero reveal hold (intro pose),
+        // remaining 300vh of pin distance = original keyframe timeline.
         const scrollWithinSection = scrollTop - sectionTopAbsolute;
-        const totalScrollDistance = sectionHeight - viewportHeight;
+        const revealDistance = viewportHeight;
+        const animationScrollDistance = Math.max(sectionHeight - 2 * viewportHeight, 1);
+        const scrollPastReveal = scrollWithinSection - revealDistance;
         
-        const sectionProgress = Math.min(Math.max(scrollWithinSection / totalScrollDistance, 0), 1);
+        const sectionProgress = Math.min(
+          Math.max(scrollPastReveal / animationScrollDistance, 0),
+          1
+        );
         
         // Ride up under Hero3 while cascading in; pin once flush with the viewport.
         if (sectionRect.top > 0) {
@@ -766,9 +771,10 @@ const {
         }
 
         const isInView = sectionRect.bottom > 0 && sectionRect.top < viewportHeight;
-        // Hold the intro pose while cascading in; start keyframe playback only after pin.
+        // Hold intro pose while cascading / during hero reveal; animate only after.
         const isPinned = sectionRect.top <= 0 && sectionRect.bottom >= viewportHeight;
-        const animationProgress = isPinned ? sectionProgress : 0;
+        const isRevealing = isPinned && scrollWithinSection < revealDistance;
+        const animationProgress = isPinned && !isRevealing ? sectionProgress : 0;
         targetSectionProgress = animationProgress;
 
         // Reverse playback so scroll-down goes from end keyframes to start keyframes.
@@ -776,7 +782,8 @@ const {
 
         if (modelContainer) {
           modelContainer.classList.toggle('is-active', isInView);
-          modelContainer.classList.toggle('is-cascading', isInView && !isPinned);
+          // Cascading in, or holding under Hero3 while it slides away
+          modelContainer.classList.toggle('is-cascading', isInView && (!isPinned || isRevealing));
           applyContainerTransform();
         }
         if (!isInView && keyframeTextBlock) {
@@ -1016,16 +1023,20 @@ const {
       // Get the absolute position of the section from the document top
       const sectionRect = modelSection.getBoundingClientRect();
       const sectionTopAbsolute = scrollTop + sectionRect.top;
-      const sectionHeight = modelSection.offsetHeight; // 400vh
+      const sectionHeight = modelSection.offsetHeight; // 500vh (100vh reveal + 400vh scroll)
       
-      const totalScrollable = Math.max(sectionHeight - viewportHeight, 1);
-      const sectionProgress = Math.min(Math.max((scrollTop - sectionTopAbsolute) / totalScrollable, 0), 1);
+      const revealDistance = viewportHeight;
+      const animationScrollDistance = Math.max(sectionHeight - 2 * viewportHeight, 1);
+      const scrollWithinSection = scrollTop - sectionTopAbsolute;
+      const scrollPastReveal = scrollWithinSection - revealDistance;
+      const sectionProgress = Math.min(Math.max(scrollPastReveal / animationScrollDistance, 0), 1);
       
       // Visible while the section intersects the viewport (rides up under Hero3).
       isSectionPinned = sectionRect.top <= 0 && sectionRect.bottom >= viewportHeight;
       isSectionInView = sectionRect.bottom > 0 && sectionRect.top < viewportHeight;
-      // Don't drive the about/floating layer until the cascade has pinned.
-      targetSectionProgress = isSectionPinned ? sectionProgress : 0;
+      const isRevealing = isSectionPinned && scrollWithinSection < revealDistance;
+      // Hold about/floating until after the hero reveal window.
+      targetSectionProgress = isSectionPinned && !isRevealing ? sectionProgress : 0;
 
       // Keep about layer locked to the same pin offset as the model.
       let aboutPinY = 0;
@@ -1058,13 +1069,13 @@ const {
 </script>
 
 <style>
-  /* Scroll section: 400vh tall to create scroll space.
-     Placed directly after Hero3 so the last 100vh exit and this
-     section rise together — model cascades in from behind. */
+  /* Scroll section: 500vh =
+     100vh hero-reveal hold (intro pose under Hero3 exit) +
+     400vh original pin/scroll space (300vh keyframe timeline). */
   .model-scroll-section {
     position: relative;
     width: 100%;
-    height: 400vh;
+    height: 500vh;
     background-color: #000;
     z-index: 0;
   }
