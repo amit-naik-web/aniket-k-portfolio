@@ -401,7 +401,7 @@ const {
           Move X: Arrow Left/Right or A/D<br>
           Scale: Arrow Up/Down or +/-<br>
           Press 'D' to toggle debug<br>
-          Press 'P' to print captured<br>
+          Press 'P' to print + copy captured<br>
           Press 'X' to clear captured</small>
         `;
       }
@@ -487,34 +487,35 @@ const {
         setTimeout(() => feedback.remove(), 1000);
       }
       
-      // Print all captured positions
+      // Print all captured positions as paste-ready modelPositions entries
       function printCapturedPositions() {
         if (capturedPositions.length === 0) {
           console.log('No positions captured yet. Press "C" to capture positions.');
           return;
         }
-        
+
+        const arrayBody = capturedPositions.map((pos, index) => {
+          const comma = index < capturedPositions.length - 1 ? ',' : '';
+          return `  { cameraOrbit: "${pos.cameraOrbit}", fieldOfView: "${pos.fieldOfView}", scale: ${pos.scale}, translateXvw: ${pos.translateXvw} }${comma} // ${index + 1} @ ${pos.scrollPercent}`;
+        }).join('\n');
+
+        const snippet = `const modelPositions = [\n${arrayBody}\n];`;
+
         console.log('\n🎬 CAPTURED POSITIONS ARRAY');
         console.log('═══════════════════════════════════════');
-        console.log('Copy this array to use in your code:\n');
-        console.log('const modelPositions = [');
-        capturedPositions.forEach((pos, index) => {
-          console.log(`  { // Position ${index + 1} - Scroll: ${pos.scrollPercent}`);
-          console.log(`    cameraOrbit: "${pos.cameraOrbit}",`);
-          console.log(`    fieldOfView: "${pos.fieldOfView}"`);
-          console.log(`  }${index < capturedPositions.length - 1 ? ',' : ''}`);
-        });
-        console.log('];\n');
-        console.log('const transformKeyframes = [');
-        capturedPositions.forEach((pos, index) => {
-          console.log(`  { scale: ${pos.scale}, translateXvw: ${pos.translateXvw} }${index < capturedPositions.length - 1 ? ',' : ''}`);
-        });
-        console.log('];\n');
-        console.log('═══════════════════════════════════════\n');
-        
-        // Also log as JSON for easy copying
+        console.log('Paste-ready combined keyframes:\n');
+        console.log(snippet);
+        console.log('\n═══════════════════════════════════════\n');
         console.log('JSON Format:');
         console.log(JSON.stringify(capturedPositions, null, 2));
+
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(snippet).then(() => {
+            console.log('📋 Copied modelPositions snippet to clipboard');
+          }).catch(() => {
+            console.warn('Clipboard copy failed — select the console snippet manually');
+          });
+        }
       }
       
       // Toggle capture mode
