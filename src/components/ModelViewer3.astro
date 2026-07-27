@@ -49,7 +49,7 @@ const {
     <div class="scroll-progress-indicator"></div>
   </div>
 
-  <div class="keyframe-text-block" id="keyframe-text-block">
+  <div class="keyframe-text-block keyframe-text-block--left" id="keyframe-text-block">
     <p>
       <span class="keyframe-word">Passionate</span>
       <span class="keyframe-word">visual</span>
@@ -86,6 +86,43 @@ const {
       <span class="keyframe-word">the</span>
       <span class="keyframe-word">editing</span>
       <span class="keyframe-word">suite.</span>
+    </p>
+  </div>
+
+  <div class="keyframe-text-block keyframe-text-block--right" id="keyframe-text-block-right">
+    <p>
+      <span class="keyframe-word">From</span>
+      <span class="keyframe-word">intimate</span>
+      <span class="keyframe-word">sets</span>
+      <span class="keyframe-word">to</span>
+      <span class="keyframe-word">stadium</span>
+      <span class="keyframe-word">stages,</span>
+      <span class="keyframe-word">every</span>
+      <span class="keyframe-word">frame</span>
+      <span class="keyframe-word">is</span>
+      <span class="keyframe-word">composed</span>
+      <span class="keyframe-word">to</span>
+      <span class="keyframe-word">capture</span>
+      <span class="keyframe-word">energy,</span>
+      <span class="keyframe-word">emotion,</span>
+      <span class="keyframe-word">and</span>
+      <span class="keyframe-word">the</span>
+      <span class="keyframe-word">unforgettable</span>
+      <span class="keyframe-word">moments</span>
+      <span class="keyframe-word">in</span>
+      <span class="keyframe-word">between.</span>
+      <span class="keyframe-word">Live</span>
+      <span class="keyframe-word">music,</span>
+      <span class="keyframe-word">movement,</span>
+      <span class="keyframe-word">and</span>
+      <span class="keyframe-word">light</span>
+      <span class="keyframe-word">become</span>
+      <span class="keyframe-word">a</span>
+      <span class="keyframe-word">visual</span>
+      <span class="keyframe-word">language</span>
+      <span class="keyframe-word">told</span>
+      <span class="keyframe-word">in</span>
+      <span class="keyframe-word">motion.</span>
     </p>
   </div>
   
@@ -154,16 +191,28 @@ const {
         // Earlier frames (reached later in reversed playback)
         // Exit left: push past -100vw so the full-bleed container clears the viewport
         { cameraOrbit: "0deg 75deg 35m",   fieldOfView: "45deg", scale: 0.70, translateXvw: -130 },
-        { cameraOrbit: "15deg 75deg 32m",  fieldOfView: "45deg", scale: 0.76, translateXvw: -95 },
-        { cameraOrbit: "30deg 75deg 29m",  fieldOfView: "45deg", scale: 0.83, translateXvw: -70 },
-        { cameraOrbit: "45deg 75deg 26m",  fieldOfView: "45deg", scale: 0.92, translateXvw: -50 },
-        { cameraOrbit: "60deg 75deg 23m",  fieldOfView: "45deg", scale: 1.03, translateXvw: -36 },
-        { cameraOrbit: "75deg 75deg 21m",  fieldOfView: "45deg", scale: 1.18, translateXvw: -24 },
-        { cameraOrbit: "90deg 75deg 10m",  fieldOfView: "70deg", scale: 1.35, translateXvw: -16 },
-        { cameraOrbit: "122deg 14deg 15m", fieldOfView: "48.5deg", scale: 1.50, translateXvw: -12 },
-        { cameraOrbit: "126deg 30deg 16m", fieldOfView: "47deg", scale: 1.62, translateXvw: -9 },
-        { cameraOrbit: "129deg 44deg 16.5m", fieldOfView: "45.5deg", scale: 1.74, translateXvw: -6 },
-        { cameraOrbit: "132deg 58deg 17m", fieldOfView: "44deg", scale: 1.86, translateXvw: -4 },
+        { cameraOrbit: "10deg 75deg 30m",  fieldOfView: "45deg", scale: 0.78, translateXvw: -100 },
+        { cameraOrbit: "20deg 75deg 26m",  fieldOfView: "45deg", scale: 0.85, translateXvw: -70 },
+        { cameraOrbit: "30deg 75deg 22m",  fieldOfView: "45deg", scale: 0.95, translateXvw: -45 },
+
+        // Left-angle hold plateau — delays exit so right text can finish
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+
+        // Left-angle settle — near center, bit left — then into plateau / exit above
+        { cameraOrbit: "45deg 75deg 16m",  fieldOfView: "45deg", scale: 1.15, translateXvw: -18 },
+        { cameraOrbit: "50deg 75deg 15m",  fieldOfView: "44deg", scale: 1.25, translateXvw: -14 },
+        { cameraOrbit: "55deg 75deg 15m",  fieldOfView: "44deg", scale: 1.30, translateXvw: -12 },
+
+        // After hold: swing toward left angle; stay near center bit left
+        { cameraOrbit: "75deg 76deg 16m",  fieldOfView: "43deg", scale: 1.40, translateXvw: -10 },
+        { cameraOrbit: "95deg 78deg 16.5m", fieldOfView: "42deg", scale: 1.50, translateXvw: -8 },
+        { cameraOrbit: "115deg 80deg 17m", fieldOfView: "42deg", scale: 1.55, translateXvw: -6 },
+        { cameraOrbit: "125deg 80deg 17m", fieldOfView: "42deg", scale: 1.60, translateXvw: -5 },
 
         // 2nd pose hold
         { cameraOrbit: "135deg 80deg 17m", fieldOfView: "42deg", scale: 1.65, translateXvw: -5 },
@@ -203,8 +252,11 @@ const {
       let currentSectionProgress = 0;
       let targetSectionProgress = 0;
       let pinOffsetY = 0;
-      const leftTextWindowStartIndex = 15;
-      const leftTextWindowEndIndex = 23;
+      const leftTextWindowStartIndex = 21;
+      const leftTextWindowEndIndex = 29;
+      // Right text while model sits near-center / bit-left after the hold
+      const rightTextWindowStartIndex = 4;
+      const rightTextWindowEndIndex = 16;
       // Initial pose is driven by the LAST element of modelPositions
       // (because playback is reversed: progress=1 at section start -> last keyframe).
       const initialHoldPose = {
@@ -240,23 +292,47 @@ const {
       const progressIndicator = document.querySelector('.scroll-progress-indicator');
       const modelContainer = document.querySelector('.model-viewer-container');
       const keyframeTextBlock = document.getElementById('keyframe-text-block');
+      const keyframeTextBlockRight = document.getElementById('keyframe-text-block-right');
       const keyframeWords = Array.from(
         keyframeTextBlock?.querySelectorAll('.keyframe-word') || []
       ) as HTMLElement[];
+      const keyframeWordsRight = Array.from(
+        keyframeTextBlockRight?.querySelectorAll('.keyframe-word') || []
+      ) as HTMLElement[];
 
-      function updateKeyframeWordHighlight(positionIndex: number) {
-        if (!keyframeWords.length) return;
+      function updateWordHighlight(
+        words: HTMLElement[],
+        positionIndex: number,
+        startIndex: number,
+        endIndex: number
+      ) {
+        if (!words.length) return;
 
-        const windowSpan = Math.max(leftTextWindowEndIndex - leftTextWindowStartIndex, 0.0001);
+        const windowSpan = Math.max(endIndex - startIndex, 0.0001);
         const highlightProgress = Math.min(
-          Math.max((leftTextWindowEndIndex - positionIndex) / windowSpan, 0),
+          Math.max((endIndex - positionIndex) / windowSpan, 0),
           1
         );
-        const highlightedWords = Math.floor(highlightProgress * keyframeWords.length);
+        const highlightedWords = Math.floor(highlightProgress * words.length);
 
-        keyframeWords.forEach((word, index) => {
+        words.forEach((word, index) => {
           word.classList.toggle('is-highlighted', index < highlightedWords);
         });
+      }
+
+      function updateKeyframeWordHighlight(positionIndex: number) {
+        updateWordHighlight(
+          keyframeWords,
+          positionIndex,
+          leftTextWindowStartIndex,
+          leftTextWindowEndIndex
+        );
+        updateWordHighlight(
+          keyframeWordsRight,
+          positionIndex,
+          rightTextWindowStartIndex,
+          rightTextWindowEndIndex
+        );
       }
       
       // Create debug overlay
@@ -315,6 +391,12 @@ const {
             positionIndex >= leftTextWindowStartIndex &&
             positionIndex <= leftTextWindowEndIndex;
           keyframeTextBlock.classList.toggle('is-visible', showKeyframeText);
+        }
+        if (keyframeTextBlockRight) {
+          const showRightKeyframeText =
+            positionIndex >= rightTextWindowStartIndex &&
+            positionIndex <= rightTextWindowEndIndex;
+          keyframeTextBlockRight.classList.toggle('is-visible', showRightKeyframeText);
         }
         updateKeyframeWordHighlight(positionIndex);
 
@@ -787,8 +869,9 @@ const {
           modelContainer.classList.toggle('is-cascading', isInView && (!isPinned || isRevealing));
           applyContainerTransform();
         }
-        if (!isInView && keyframeTextBlock) {
-          keyframeTextBlock.classList.remove('is-visible');
+        if (!isInView) {
+          keyframeTextBlock?.classList.remove('is-visible');
+          keyframeTextBlockRight?.classList.remove('is-visible');
         }
         
         // Debug logging
@@ -1115,7 +1198,6 @@ const {
 
   .keyframe-text-block {
     position: fixed;
-    left: 6vw;
     top: 50%;
     width: min(34vw, 460px);
     transform: translate3d(0, -50%, 0);
@@ -1126,6 +1208,21 @@ const {
     pointer-events: none;
     transition: opacity 0.35s ease, transform 0.35s ease;
     text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+
+  .keyframe-text-block--left {
+    left: 6vw;
+    right: auto;
+  }
+
+  .keyframe-text-block--right {
+    right: 6vw;
+    left: auto;
+    text-align: right;
+  }
+
+  .keyframe-text-block--right p {
+    margin-left: auto;
   }
 
   .keyframe-text-block.is-visible {
@@ -1410,8 +1507,15 @@ const {
     }
 
     .keyframe-text-block {
-      left: 5vw;
       width: 82vw;
+    }
+
+    .keyframe-text-block--left {
+      left: 5vw;
+    }
+
+    .keyframe-text-block--right {
+      right: 5vw;
     }
   }
 </style>
