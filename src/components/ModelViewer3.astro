@@ -857,7 +857,11 @@ const {
         // Hold intro pose while cascading / during hero reveal; animate only after.
         const isPinned = sectionRect.top <= 0 && sectionRect.bottom >= viewportHeight;
         const isRevealing = isPinned && scrollWithinSection < revealDistance;
-        const animationProgress = isPinned && !isRevealing ? sectionProgress : 0;
+        // Before section / during reveal → intro (0). After pin or scrolled past →
+        // keep sectionProgress (clamped to 1 at exit) so the model does NOT snap
+        // back to the initial pose once it has left the viewport.
+        const animationProgress =
+          isRevealing || sectionRect.top > 0 ? 0 : sectionProgress;
         targetSectionProgress = animationProgress;
 
         // Reverse playback so scroll-down goes from end keyframes to start keyframes.
